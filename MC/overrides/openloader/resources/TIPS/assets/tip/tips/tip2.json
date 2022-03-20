@@ -1,0 +1,13 @@
+{
+    "title":{
+        "text":"你知道吗",
+        "bold":"true",
+        "color":"yellow",
+        "underlined":"true"
+    },
+    "tip":{
+        "text":"当你玩游戏3600秒，你的生命就会减少1小时",
+        "bold":"true",
+        "color":"aqua"
+    }
+}

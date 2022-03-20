@@ -1,0 +1,13 @@
+{
+    "title":{
+        "text":"你知道吗",
+        "bold":"true",
+        "color":"yellow",
+        "underlined":"true"
+    },
+    "tip":{
+        "text":"在下界中行进一个方块相当于在主世界中行进八个方块。",
+        "bold":"true",
+        "color":"aqua"
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "title":{
+        "text":"你知道吗",
+        "bold":"true",
+        "color":"yellow",
+        "underlined":"true"
+    },
+    "tip":{
+        "text":"猪人不会攻击您，但猪灵会。",
+        "bold":"true",
+        "color":"aqua"
+    }
+}

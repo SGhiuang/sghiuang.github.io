@@ -852,6 +852,120 @@
       "hash": "90ca7b5012217d732bc2dc482f1a74d14f866471",
       "force": true,
       "type": "addon"
+    },
+    {
+      "path": "openloader/.cache",
+      "hash": "1218386ac8c0260001d7d9e520ecaa25d501f94b",
+      "force": true,
+      "type": "addon"
+    },
+    {
+      "path": "openloader/resources/TIPS/assets/tip/tips/tip1.json",
+      "hash": "dcd153dcf362a48c997dc18f254730a7cde21fc7",
+      "force": true,
+      "type": "addon"
+    },
+    {
+      "path": "openloader/resources/TIPS/assets/tip/tips/tip10.json",
+      "hash": "3ba405b3a833da62bba0c7dbc76a0e684b1787ca",
+      "force": true,
+      "type": "addon"
+    },
+    {
+      "path": "openloader/resources/TIPS/assets/tip/tips/tip11.json",
+      "hash": "7b0bdfc2484e642041e40b33b67847a53ae2b63a",
+      "force": true,
+      "type": "addon"
+    },
+    {
+      "path": "openloader/resources/TIPS/assets/tip/tips/tip12.json",
+      "hash": "5029eca7a3a7903d9b276ddf1cd5e76904a837fa",
+      "force": true,
+      "type": "addon"
+    },
+    {
+      "path": "openloader/resources/TIPS/assets/tip/tips/tip13.json",
+      "hash": "d5ca6e2327514bc052146420698c4ba7c745500d",
+      "force": true,
+      "type": "addon"
+    },
+    {
+      "path": "openloader/resources/TIPS/assets/tip/tips/tip14.json",
+      "hash": "a233b2bfdac8fff0021a4efc558e8e1be4ade5ba",
+      "force": true,
+      "type": "addon"
+    },
+    {
+      "path": "openloader/resources/TIPS/assets/tip/tips/tip15.json",
+      "hash": "cdde9fe702cc0219fd734282050f329c93331958",
+      "force": true,
+      "type": "addon"
+    },
+    {
+      "path": "openloader/resources/TIPS/assets/tip/tips/tip16.json",
+      "hash": "4f257c4537fe5a904f1723e25f61fa8fd17acfb1",
+      "force": true,
+      "type": "addon"
+    },
+    {
+      "path": "openloader/resources/TIPS/assets/tip/tips/tip2.json",
+      "hash": "c254580d7b2a7b1fa404ce8d144f555f7696ee3b",
+      "force": true,
+      "type": "addon"
+    },
+    {
+      "path": "openloader/resources/TIPS/assets/tip/tips/tip3.json",
+      "hash": "8ab02b9c82d6851226fc17365f25bc8407dcb7ee",
+      "force": true,
+      "type": "addon"
+    },
+    {
+      "path": "openloader/resources/TIPS/assets/tip/tips/tip4.json",
+      "hash": "b7646d2650c5688250372965df15413bd30d3b23",
+      "force": true,
+      "type": "addon"
+    },
+    {
+      "path": "openloader/resources/TIPS/assets/tip/tips/tip5.json",
+      "hash": "1709b078ea0abebb176cdf3dc39aa4158922152e",
+      "force": true,
+      "type": "addon"
+    },
+    {
+      "path": "openloader/resources/TIPS/assets/tip/tips/tip6.json",
+      "hash": "b68d77cf827e952d9d988616e0a5d21ad6ed04be",
+      "force": true,
+      "type": "addon"
+    },
+    {
+      "path": "openloader/resources/TIPS/assets/tip/tips/tip7.json",
+      "hash": "7a106031e482f5216f0181f60d21552ece953789",
+      "force": true,
+      "type": "addon"
+    },
+    {
+      "path": "openloader/resources/TIPS/assets/tip/tips/tip8.json",
+      "hash": "8c1150f7c08576288c01f49446d152aa8acc56ba",
+      "force": true,
+      "type": "addon"
+    },
+    {
+      "path": "openloader/resources/TIPS/assets/tip/tips/tip9.json",
+      "hash": "8fadb04441e51f181c8f14374eb0f454e26bfa8c",
+      "force": true,
+      "type": "addon"
+    },
+    {
+      "path": "openloader/resources/TIPS/pack.mcmeta",
+      "hash": "9d4d4c3ce3a70763bb970f9efc34f54d20828c7e",
+      "force": true,
+      "type": "addon"
+    },
+    {
+      "path": "servers.dat",
+      "hash": "639a7157d624e0dd4871b3eb9df84db3a20f9d16",
+      "force": true,
+      "type": "addon"
     }
   ],
   "settings": {

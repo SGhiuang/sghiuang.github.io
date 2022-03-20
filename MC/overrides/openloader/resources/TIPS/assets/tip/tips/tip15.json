@@ -1,0 +1,13 @@
+{
+    "title":{
+        "text":"你知道吗",
+        "bold":"true",
+        "color":"yellow",
+        "underlined":"true"
+    },
+    "tip":{
+        "text":"嘿，小子，在这个整合包，千万不要跳进岩浆！",
+        "bold":"true",
+        "color":"aqua"
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "title":{
+        "text":"你知道吗",
+        "bold":"true",
+        "color":"yellow",
+        "underlined":"true"
+    },
+    "tip":{
+        "text":"当你点击右上角的“X”，你的游戏就会关闭",
+        "bold":"true",
+        "color":"aqua"
+    }
+}

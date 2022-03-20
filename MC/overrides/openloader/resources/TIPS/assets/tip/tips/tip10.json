@@ -1,0 +1,13 @@
+{
+    "title":{
+        "text":"你知道吗",
+        "bold":"true",
+        "color":"yellow",
+        "underlined":"true"
+    },
+    "tip":{
+        "text":"将那些火球弹回去攻击恶魂！",
+        "bold":"true",
+        "color":"aqua"
+    }
+}

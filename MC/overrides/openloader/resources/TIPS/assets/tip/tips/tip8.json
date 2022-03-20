@@ -1,0 +1,13 @@
+{
+    "title":{
+        "text":"你知道吗",
+        "bold":"true",
+        "color":"yellow",
+        "underlined":"true"
+    },
+    "tip":{
+        "text":"不要只将树砍一半，这会使一些强迫症不适",
+        "bold":"true",
+        "color":"aqua"
+    }
+}

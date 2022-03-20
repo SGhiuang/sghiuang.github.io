@@ -1,0 +1,13 @@
+{
+    "title":{
+        "text":"你知道吗",
+        "bold":"true",
+        "color":"yellow",
+        "underlined":"true"
+    },
+    "tip":{
+        "text":"在游戏中按Alt+F4会有惊喜！",
+        "bold":"true",
+        "color":"aqua"
+    }
+}

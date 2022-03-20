@@ -1,0 +1,13 @@
+{
+    "title":{
+        "text":"你知道吗",
+        "bold":"true",
+        "color":"yellow",
+        "underlined":"true"
+    },
+    "tip":{
+        "text":"这个整合包有暮色森林！",
+        "bold":"true",
+        "color":"aqua"
+    }
+}
