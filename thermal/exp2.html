@@ -1,109 +1,198 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>实验二：金属比热容测量</title>
     <style>
-        .experiment { margin: 20px; padding: 20px; border: 1px solid #ccc; }
-        .input-group { margin: 10px 0; }
-        .sample { margin: 15px 0; padding: 10px; background: #f5f5f5; }
-        table { border-collapse: collapse; margin-top: 20px; }
-        td, th { border: 1px solid #ddd; padding: 8px; }
+        :root {
+            --primary-color: #3498db;
+            --text-color: #2c3e50;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background-color: #f5f7f9;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .input-group {
+            margin: 10px 0;
+        }
+
+        input {
+            box-sizing: border-box;
+            width: calc(100% - 20px);
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin: 8px 10px;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            margin: 20px 0;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            transition: all 0.3s ease;
+            transform-origin: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        
+            transition-property: transform, box-shadow, background-color;
+        }
+
+        button:hover {
+            transform: scale(1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            background-color: #2980b9;
+        }
+
+        button:active {
+            transform: scale(0.98);
+            background-color: #2980b9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        td, th {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-    <div class="experiment">
-        <h2>实验二：金属比热容测量</h2>
-        
-        <div class="input-group">
-            <h3>铜样品数据</h3>
-            <div>质量（g）: <input type="number" id="cuMass" step="0.01" value="12.35"></div>
-            <div>冷却时间（s）: <input type="number" id="cuTime" step="0.1" value="16.78"></div>
-        </div>
+    <div class="container">
+        <h1>金属比热容测量</h1>
 
-        <div class="input-group">
-            <h3>待测样品</h3>
-            <div class="sample">
-                <h4>铁样品</h4>
-                <div>质量（g）: <input type="number" id="feMass" step="0.01" value="11.03"></div>
-                <div>冷却时间（s）: <input type="number" id="feTime" step="0.1" value="18.28"></div>
+        <div class="card">
+            <h2>铜样品数据</h2>
+            <div class="input-group">
+                <input type="number" id="cuMass" placeholder="铜样品质量 (g)" step="0.01">
             </div>
-            <div class="sample">
-                <h4>铝样品</h4>
-                <div>质量（g）: <input type="number" id="alMass" step="0.01" value="3.99"></div>
-                <div>冷却时间（s）: <input type="number" id="alTime" step="0.1" value="13.40"></div>
+            <div class="input-group">
+                <input type="number" id="cuTime" placeholder="冷却时间 (s)" step="0.1">
             </div>
         </div>
 
-        <button onclick="runExperiment2()">开始计算</button>
-        <div id="result2"></div>
+        <div class="card">
+            <h2>铁样品数据</h2>
+            <div class="input-group">
+                <input type="number" id="feMass" placeholder="铁样品质量 (g)" step="0.01">
+            </div>
+            <div class="input-group">
+                <input type="number" id="feTime" placeholder="冷却时间 (s)" step="0.1">
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>铝样品数据</h2>
+            <div class="input-group">
+                <input type="number" id="alMass" placeholder="铝样品质量 (g)" step="0.01">
+            </div>
+            <div class="input-group">
+                <input type="number" id="alTime" placeholder="冷却时间 (s)" step="0.1">
+            </div>
+        </div>
+
+        <button onclick="calculateExperiment2()">开始计算</button>
+
+        <div class="card">
+            <h2>实验结果</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>金属</th>
+                        <th>质量 (g)</th>
+                        <th>时间 (s)</th>
+                        <th>比热容</th>
+                        <th>标准值</th>
+                        <th>误差 (%)</th>
+                    </tr>
+                </thead>
+                <tbody id="resultBody"></tbody>
+            </table>
+        </div>
     </div>
 
     <script>
-        function runExperiment2() {
-            // 常量定义
-            const C_Cu = 0.0940  // 铜的比热容 Cal/(g·°C)
-            const STANDARD = { Fe: 0.110, Al: 0.230 }
-
+        function calculateExperiment2() {
             // 获取输入数据
-            const cuMass = parseFloat(document.getElementById('cuMass').value)
-            const cuTime = parseFloat(document.getElementById('cuTime').value)
-            
-            const feMass = parseFloat(document.getElementById('feMass').value)
-            const feTime = parseFloat(document.getElementById('feTime').value)
-            
-            const alMass = parseFloat(document.getElementById('alMass').value)
-            const alTime = parseFloat(document.getElementById('alTime').value)
+            const inputs = {
+                cuMass: parseFloat(document.getElementById('cuMass').value),
+                cuTime: parseFloat(document.getElementById('cuTime').value),
+                feMass: parseFloat(document.getElementById('feMass').value),
+                feTime: parseFloat(document.getElementById('feTime').value),
+                alMass: parseFloat(document.getElementById('alMass').value),
+                alTime: parseFloat(document.getElementById('alTime').value)
+            };
 
-            // 计算结果
-            const results = []
-            // 铁样品计算
-            const C_Fe = C_Cu * (cuMass * feTime) / (feMass * cuTime)
-            results.push({
-                name: '铁',
-                symbol: 'Fe',
-                mass: feMass,
-                time: feTime,
-                C: C_Fe,
-                std: STANDARD.Fe
-            })
-            
-            // 铝样品计算
-            const C_Al = C_Cu * (cuMass * alTime) / (alMass * cuTime)
-            results.push({
-                name: '铝',
-                symbol: 'Al',
-                mass: alMass,
-                time: alTime,
-                C: C_Al,
-                std: STANDARD.Al
-            })
+            // 数据验证
+            if (Object.values(inputs).some(v => isNaN(v) || v <= 0)) {
+                alert("请填写所有有效数据");
+                return;
+            }
 
-            // 生成结果表格
-            let html = `<table>
-                <tr><th>金属</th><th>质量(g)</th><th>时间(s)</th><th>比热容</th><th>标准值</th><th>误差%</th></tr>
+            // 计算比热容
+            const C_Cu = 0.0940;
+            const STANDARD = { Fe: 0.110, Al: 0.230 };
+            
+            const C_Fe = C_Cu * (inputs.cuMass * inputs.feTime) / (inputs.feMass * inputs.cuTime);
+            const C_Al = C_Cu * (inputs.cuMass * inputs.alTime) / (inputs.alMass * inputs.cuTime);
+
+            // 生成结果
+            const tbody = document.getElementById('resultBody');
+            tbody.innerHTML = `
                 <tr>
                     <td>铜</td>
-                    <td>${cuMass.toFixed(2)}</td>
-                    <td>${cuTime.toFixed(2)}</td>
+                    <td>${inputs.cuMass.toFixed(2)}</td>
+                    <td>${inputs.cuTime.toFixed(2)}</td>
                     <td>${C_Cu.toFixed(3)}</td>
                     <td>${C_Cu.toFixed(3)}</td>
                     <td>-</td>
-                </tr>`
-            
-            results.forEach(res => {
-                const error = ((res.C - res.std) / res.std * 100).toFixed(1)
-                html += `<tr>
-                    <td>${res.name}</td>
-                    <td>${res.mass.toFixed(2)}</td>
-                    <td>${res.time.toFixed(2)}</td>
-                    <td>${res.C.toFixed(3)}</td>
-                    <td>${res.std.toFixed(3)}</td>
-                    <td>${error}%</td>
-                </tr>`
-            })
-            
-            html += `</table>`
-            document.getElementById('result2').innerHTML = html
+                </tr>
+                <tr>
+                    <td>铁</td>
+                    <td>${inputs.feMass.toFixed(2)}</td>
+                    <td>${inputs.feTime.toFixed(2)}</td>
+                    <td>${C_Fe.toFixed(3)}</td>
+                    <td>${STANDARD.Fe.toFixed(3)}</td>
+                    <td>${Math.abs((C_Fe - STANDARD.Fe)/STANDARD.Fe * 100).toFixed(1)}%</td>
+                </tr>
+                <tr>
+                    <td>铝</td>
+                    <td>${inputs.alMass.toFixed(2)}</td>
+                    <td>${inputs.alTime.toFixed(2)}</td>
+                    <td>${C_Al.toFixed(3)}</td>
+                    <td>${STANDARD.Al.toFixed(3)}</td>
+                    <td>${Math.abs((C_Al - STANDARD.Al)/STANDARD.Al * 100).toFixed(1)}%</td>
+                </tr>
+            `;
         }
     </script>
 </body>
