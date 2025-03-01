@@ -152,13 +152,25 @@
             ).join('');
         }
 
-        // 跳转功能
-        function navigateToExperiment() {
+        // 修改后的跳转功能（添加页面检测）
+        async function navigateToExperiment() {
             const path = document.getElementById('experimentSelect').value;
-            if (path) {
-                window.location.href = `${path}.html`;
-            } else {
+            if (!path) {
                 alert('请先选择实验项目');
+                return;
+            }
+
+            try {
+                // 添加页面存在性检测
+                const response = await fetch(`${path}.html?_=${Date.now()}`);
+                if (!response.ok) throw new Error('页面不存在');
+                
+                // 实际跳转
+                window.location.href = `${path}.html`;
+            } catch (error) {
+                console.error('跳转失败:', error);
+                // 重定向到错误页面
+                window.location.href = 'error.html';
             }
         }
 
