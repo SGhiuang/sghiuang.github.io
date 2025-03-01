@@ -1,43 +1,27 @@
-import experiment1
-import experiment2
+# main.py
+from js import document
 
 def show_menu():
-    """显示选择菜单"""
-    print("\n=== 物理实验数据处理系统 ===")
-    print("1. 液体比汽化热测量实验")
-    print("2. 金属比热容测量实验")
-    print("3. 退出系统")
+    """激活主菜单界面"""
+    document.getElementById("menu").style.display = "block"
+    document.getElementById("experiment1").classList.remove("active")
+    document.getElementById("experiment2").classList.remove("active")
 
-def run_experiment(choice):
-    """执行对应的实验"""
-    if choice == '1':
-        experiment1.main()
-    elif choice == '2':
-        experiment2.main()
-    else:
-        print("无效的选择！")
+def select_experiment(num):
+    """处理实验选择（由JavaScript调用）"""
+    if num == 1:
+        document.getElementById("experiment1").classList.add("active")
+        document.getElementById("experiment2").classList.remove("active")
+    elif num == 2:
+        document.getElementById("experiment2").classList.add("active")
+        document.getElementById("experiment1").classList.remove("active")
 
-def get_valid_selection():
-    while True:
-        try:
-            selection = input("请选择实验编号 (1/2/3): ")
-            if selection in ['1', '2', '3']:
-                return selection
-            raise ValueError
-        except ValueError:
-            print("输入错误，请输入1/2/3！")
+def exit_system():
+    """清理资源"""
+    document.getElementById("output1").innerHTML = ""
+    document.getElementById("output2").innerHTML = ""
+    show_menu()
 
 if __name__ == "__main__":
-    while True:
-        selection = get_valid_selection()
-        show_menu()
-        selection = input("请选择实验编号 (1/2/3): ")
-        
-        if selection == '3':
-            print("感谢使用，程序已退出！")
-            break
-            
-        if selection in ['1', '2']:
-            run_experiment(selection)
-        else:
-            print("输入错误，请重新输入1/2/3！")
+    # Pyodide加载后自动执行
+    show_menu()
