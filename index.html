@@ -1,54 +1,101 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>物理实验系统</title>
+    <title>物理实验数据处理系统</title>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
-    <script src="pyodide-config.js"></script>
     <style>
-        /* 保持原有样式 */
+        /* 原有样式保持不变 */
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        /* 新增加载状态隐藏样式 */
+        #status[data-loaded="true"] { display: none; }
     </style>
 </head>
 <body>
-    <!-- 保持原有界面结构 -->
-    
+    <div id="status">
+        <div id="status-text">正在加载运行时环境...</div>
+        <div id="progress"></div>
+    </div>
+
+    <div class="container" style="display:none;">
+        <!-- 原有界面内容 -->
+        <h1>物理实验数据处理系统</h1>
+        <div id="menu">
+            <button onclick="selectExperiment(1)">液体比汽化热测量</button>
+            <button onclick="selectExperiment(2)">金属比热容测量</button>
+        </div>
+        <!-- 实验界面保持不变 -->
+    </div>
+
     <script>
-    async function initialize() {
-        // 初始化Pyodide
-        window.pyodide = await loadPyodide({
+    async function loadPyodideWithProgress() {
+        const statusElement = document.getElementById('status-text');
+        const progressElement = document.getElementById('progress');
+        
+        // 配置加载进度回调
+        const pyodide = await loadPyodide({
             indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/",
-            stdout: msg => document.getElementById('output').innerHTML += msg,
-            stderr: msg => console.error(msg)
+            stdout: text => console.log(text),
+            stderr: text => console.error(text),
+            fullStdLib: false,
+            // 添加进度监控
+            preRun: () => statusElement.textContent = "初始化Python运行时...",
+            postRun: () => statusElement.textContent = "加载完成!"
         });
+
+        // 显示加载阶段
+        statusElement.textContent = "正在挂载文件系统...";
         
-        // 加载Python标准库
-        await pyodide.loadPackage(["numpy"]);
-        
-        // 挂载虚拟文件系统
-        const pythonFiles = [
-            '/python/main.py',
-            '/python/experiment1.py',
-            '/python/experiment2.py'
+        // 加载Python文件（使用相对路径）
+        const files = [
+            ['./python/main.py', 'main'],
+            ['./python/experiment1.py', 'exp1'],
+            ['./python/experiment2.py', 'exp2']
         ];
         
-        await Promise.all(pythonFiles.map(async file => {
-            const response = await fetch(file);
-            const content = await response.text();
-            pyodide.FS.writeFile(file, content);
-        }));
-        
-        // 设置Python路径
+        for (const [path, name] of files) {
+            try {
+                const response = await fetch(path);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const code = await response.text();
+                pyodide.FS.writeFile(`/${name}.py`, code);
+                progressElement.innerHTML += `✅ 成功加载 ${path}<br>`;
+            } catch (e) {
+                progressElement.innerHTML += `❌ 加载失败 ${path}: ${e}<br>`;
+                throw e;
+            }
+        }
+
+        // 配置Python路径
         pyodide.runPython(`
             import sys
-            sys.path.append('/python')
+            sys.path.extend(['/', './python'])
         `);
         
-        // 初始化主模块
-        await pyodide.runPythonAsync(`
-            from main import main
-            main()
-        `);
+        return pyodide;
     }
-    initialize();
+
+    async function main() {
+        try {
+            window.pyodide = await loadPyodideWithProgress();
+            
+            // 初始化完成后显示界面
+            document.querySelector('.container').style.display = 'block';
+            document.getElementById('status').setAttribute('data-loaded', 'true');
+            
+            // 执行主模块
+            await pyodide.runPythonAsync(`
+                from main import show_menu
+                show_menu()
+            `);
+        } catch (e) {
+            document.getElementById('status-text').innerHTML = 
+                `<span style="color:red">初始化失败: ${e}</span>`;
+            console.error(e);
+        }
+    }
+
+    // 启动加载流程
+    main();
     </script>
 </body>
 </html>
