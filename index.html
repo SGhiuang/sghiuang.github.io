@@ -2,37 +2,82 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>实验课程选择</title>
+    <title>物理学实验计算器</title>
     <style>
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin: 30px 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            font-family: 'Arial Black', sans-serif;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 30px;
+            background-color: #f5f7f9;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
         }
+
         .selector-container {
-            margin: 20px 0;
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
+
+        label {
+            font-weight: 600;
+            color: #34495e;
+            margin-right: 10px;
+        }
+
         select {
-            width: 200px;
-            padding: 8px;
-            margin: 10px;
-            border-radius: 4px;
+            width: 250px;
+            padding: 10px;
+            border: 2px solid #bdc3c7;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
         }
+
+        select:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+
         button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
+            display: block;
+            width: 200px;
+            margin: 30px auto;
+            padding: 12px 25px;
+            background-color: #3498db;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 25px;
+            font-size: 16px;
             cursor: pointer;
+            transition: transform 0.2s, background-color 0.3s;
         }
+
         button:hover {
-            background-color: #45a049;
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
         }
     </style>
 </head>
 <body>
+    <h1>物理学实验计算器</h1>
+
     <div class="selector-container">
         <label>实验课程：</label>
         <select id="courseSelect">
@@ -49,34 +94,31 @@
     <button onclick="navigateToExperiment()">进入实验</button>
 
     <script>
-        // 实验数据配置
         const experiments = {
-            thermal: Array.from({length: 6}, (_, i) => `热学实验 ${i + 1}`),
-            electromag: Array.from({length: 6}, (_, i) => `电磁学实验 ${i + 1}`)
+            thermal: Array.from({length: 6}, (_, i) => `实验${i + 1}：热传导测量`),
+            electromag: Array.from({length: 6}, (_, i) => `实验${i + 1}：电磁场模拟`)
         };
 
-        // 初始化实验项目下拉菜单
         function initExperiments() {
-            const courseSelect = document.getElementById('courseSelect');
-            const experimentSelect = document.getElementById('experimentSelect');
-            const selectedCourse = courseSelect.value;
+            const course = document.getElementById('courseSelect');
+            const experiment = document.getElementById('experimentSelect');
+            const courseValue = course.value;
             
-            experimentSelect.innerHTML = experiments[selectedCourse]
-                .map((exp, index) => `<option value="${selectedCourse}_${index + 1}">${exp}</option>`)
-                .join('');
+            experiment.innerHTML = experiments[courseValue]
+                .map((exp, index) => 
+                    `<option value="${courseValue}_exp${index + 1}">${exp}</option>`
+                ).join('');
         }
 
-        // 课程选择变化时更新实验项目
         document.getElementById('courseSelect').addEventListener('change', initExperiments);
 
-        // 页面跳转函数
         function navigateToExperiment() {
-            const experimentSelect = document.getElementById('experimentSelect');
-            const selectedValue = experimentSelect.value;
-            window.location.href = `${selectedValue}.html`;
+            const experiment = document.getElementById('experimentSelect').value;
+            if (experiment) {
+                window.location.href = `${experiment}.html`;
+            }
         }
 
-        // 页面加载时初始化
         window.onload = initExperiments;
     </script>
 </body>
