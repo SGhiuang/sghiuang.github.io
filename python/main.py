@@ -1,27 +1,25 @@
 # main.py
-from js import document
+from js import document, console
 
 def show_menu():
-    """激活主菜单界面"""
-    document.getElementById("menu").style.display = "block"
-    document.getElementById("experiment1").classList.remove("active")
-    document.getElementById("experiment2").classList.remove("active")
-
-def select_experiment(num):
-    """处理实验选择（由JavaScript调用）"""
-    if num == 1:
-        document.getElementById("experiment1").classList.add("active")
-        document.getElementById("experiment2").classList.remove("active")
-    elif num == 2:
-        document.getElementById("experiment2").classList.add("active")
-        document.getElementById("experiment1").classList.remove("active")
+    """安全显示主菜单"""
+    try:
+        menu = document.getElementById("menu")
+        exp1 = document.getElementById("experiment1")
+        exp2 = document.getElementById("experiment2")
+        
+        if not all([menu, exp1, exp2]):
+            raise Exception("界面元素未正确初始化")
+            
+        menu.style.display = "block"
+        exp1.style.display = "none"
+        exp2.style.display = "none"
+        console.log("主菜单已显示")
+    except Exception as e:
+        console.error(f"显示菜单时出错: {str(e)}")
+        raise
 
 def exit_system():
     """清理资源"""
-    document.getElementById("output1").innerHTML = ""
-    document.getElementById("output2").innerHTML = ""
-    show_menu()
-
-if __name__ == "__main__":
-    # Pyodide加载后自动执行
-    show_menu()
+    document.getElementById("menu").style.display = "none"
+    document.getElementById("experiments").innerHTML = ""

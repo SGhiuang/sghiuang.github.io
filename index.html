@@ -4,63 +4,141 @@
     <title>物理实验数据处理系统</title>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
     <style>
-        /* 原有样式保持不变 */
-        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
-        /* 新增加载状态隐藏样式 */
-        #status[data-loaded="true"] { display: none; }
+        /* 新增加载动画 */
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
-    <div id="status">
-        <div id="status-text">正在加载运行时环境...</div>
-        <div id="progress"></div>
+    <div id="loading">
+        <div class="loader"></div>
+        <p id="status-text">正在初始化系统...</p>
+        <div id="progress" style="margin-top:10px;"></div>
     </div>
 
     <div class="container" style="display:none;">
-        <!-- 原有界面内容 -->
         <h1>物理实验数据处理系统</h1>
         <div id="menu">
-            <button onclick="selectExperiment(1)">液体比汽化热测量</button>
-            <button onclick="selectExperiment(2)">金属比热容测量</button>
+            <button id="btn-exp1">液体比汽化热测量</button>
+            <button id="btn-exp2">金属比热容测量</button>
         </div>
-        <!-- 实验界面保持不变 -->
+        
+        <!-- 实验界面容器 -->
+        <div id="experiments">
+            <div id="experiment1" class="experiment" style="display:none;">
+                <!-- 实验1的输入字段 -->
+            </div>
+            <div id="experiment2" class="experiment" style="display:none;">
+                <!-- 实验2的输入字段 -->
+            </div>
+        </div>
     </div>
 
     <script>
-    async function loadPyodideWithProgress() {
-        const statusElement = document.getElementById('status-text');
-        const progressElement = document.getElementById('progress');
+    // 全局状态管理
+    const AppState = {
+        pyodide: null,
+        isReady: false,
+        experiments: {}
+    };
+
+    // 事件处理器
+    function bindEvents() {
+        document.getElementById('btn-exp1').addEventListener('click', () => {
+            if (!AppState.isReady) return;
+            selectExperiment(1);
+        });
         
-        // 配置加载进度回调
+        document.getElementById('btn-exp2').addEventListener('click', () => {
+            if (!AppState.isReady) return;
+            selectExperiment(2);
+        });
+    }
+
+    // 实验选择逻辑
+    function selectExperiment(num) {
+        const prevActive = document.querySelector('.experiment.active');
+        if (prevActive) prevActive.style.display = 'none';
+        
+        const experiment = document.getElementById(`experiment${num}`);
+        if (experiment) {
+            experiment.style.display = 'block';
+            experiment.classList.add('active');
+        }
+        
+        // 初始化实验模块
+        if (!AppState.experiments[num]) {
+            initExperimentModule(num);
+        }
+    }
+
+    // 初始化实验模块
+    async function initExperimentModule(num) {
+        try {
+            await AppState.pyodide.runPythonAsync(`
+                from experiment${num} import main
+                AppState.experiments[${num}] = main
+            `);
+            console.log(`Experiment ${num} initialized`);
+        } catch (e) {
+            console.error(`初始化实验${num}失败:`, e);
+        }
+    }
+
+    // Pyodide加载器
+    async function loadPyodideWithProgress() {
+        const statusEl = document.getElementById('status-text');
+        const progressEl = document.getElementById('progress');
+        
+        statusEl.textContent = "正在加载Pyodide核心...";
         const pyodide = await loadPyodide({
             indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/",
-            stdout: text => console.log(text),
-            stderr: text => console.error(text),
-            fullStdLib: false,
-            // 添加进度监控
-            preRun: () => statusElement.textContent = "初始化Python运行时...",
-            postRun: () => statusElement.textContent = "加载完成!"
+            stdout: text => console.log('[Pyodide]', text),
+            stderr: text => console.error('[Pyodide]', text),
         });
 
-        // 显示加载阶段
-        statusElement.textContent = "正在挂载文件系统...";
-        
-        // 加载Python文件（使用相对路径）
-        const files = [
-            ['./python/main.py', 'main'],
-            ['./python/experiment1.py', 'exp1'],
-            ['./python/experiment2.py', 'exp2']
+        statusEl.textContent = "挂载文件系统...";
+        const moduleFiles = [
+            { path: '/python/main.py', name: 'main' },
+            { path: '/python/experiment1.py', name: 'experiment1' },
+            { path: '/python/experiment2.py', name: 'experiment2' }
         ];
-        
-        for (const [path, name] of files) {
+
+        for (const {path, name} of moduleFiles) {
             try {
                 const response = await fetch(path);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const code = await response.text();
-                pyodide.FS.writeFile(`/${name}.py`, code);
-                progressElement.innerHTML += `✅ 成功加载 ${path}<br>`;
+                
+                // 创建目录结构
+                const dirPath = path.split('/').slice(0, -1).join('/');
+                pyodide.FS.mkdirTree(dirPath);
+                
+                pyodide.FS.writeFile(path, code);
+                progressEl.innerHTML += `✅ 已加载 ${path}<br>`;
             } catch (e) {
-                progressElement.innerHTML += `❌ 加载失败 ${path}: ${e}<br>`;
+                progressEl.innerHTML += `❌ 加载失败 ${path}: ${e.message}<br>`;
                 throw e;
             }
         }
@@ -68,34 +146,39 @@
         // 配置Python路径
         pyodide.runPython(`
             import sys
-            sys.path.extend(['/', './python'])
+            sys.path.extend(['/', '/python'])
         `);
         
         return pyodide;
     }
 
+    // 主初始化流程
     async function main() {
         try {
-            window.pyodide = await loadPyodideWithProgress();
+            AppState.pyodide = await loadPyodideWithProgress();
             
-            // 初始化完成后显示界面
+            // 绑定事件
+            bindEvents();
+            
+            // 显示UI
             document.querySelector('.container').style.display = 'block';
-            document.getElementById('status').setAttribute('data-loaded', 'true');
+            document.getElementById('loading').style.display = 'none';
+            AppState.isReady = true;
             
-            // 执行主模块
-            await pyodide.runPythonAsync(`
+            // 初始化主模块
+            await AppState.pyodide.runPythonAsync(`
                 from main import show_menu
                 show_menu()
             `);
         } catch (e) {
             document.getElementById('status-text').innerHTML = 
-                `<span style="color:red">初始化失败: ${e}</span>`;
-            console.error(e);
+                `<span style="color:red">初始化失败: ${e.message}</span>`;
+            console.error('启动失败:', e);
         }
     }
 
-    // 启动加载流程
-    main();
+    // 启动应用
+    document.addEventListener('DOMContentLoaded', main);
     </script>
 </body>
 </html>
