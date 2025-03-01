@@ -1,184 +1,83 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <title>物理实验数据处理系统</title>
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+    <meta charset="UTF-8">
+    <title>实验课程选择</title>
     <style>
-        /* 新增加载动画 */
-        #loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.9);
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
+        .selector-container {
+            margin: 20px 0;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        select {
+            width: 200px;
+            padding: 8px;
+            margin: 10px;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
 <body>
-    <div id="loading">
-        <div class="loader"></div>
-        <p id="status-text">正在初始化系统...</p>
-        <div id="progress" style="margin-top:10px;"></div>
+    <div class="selector-container">
+        <label>实验课程：</label>
+        <select id="courseSelect">
+            <option value="thermal">热学实验</option>
+            <option value="electromag">电磁学实验</option>
+        </select>
     </div>
 
-    <div class="container" style="display:none;">
-        <h1>物理实验数据处理系统</h1>
-        <div id="menu">
-            <button id="btn-exp1">液体比汽化热测量</button>
-            <button id="btn-exp2">金属比热容测量</button>
-        </div>
-        
-        <!-- 实验界面容器 -->
-        <div id="experiments">
-            <div id="experiment1" class="experiment" style="display:none;">
-                <!-- 实验1的输入字段 -->
-            </div>
-            <div id="experiment2" class="experiment" style="display:none;">
-                <!-- 实验2的输入字段 -->
-            </div>
-        </div>
+    <div class="selector-container">
+        <label>实验项目：</label>
+        <select id="experimentSelect"></select>
     </div>
+
+    <button onclick="navigateToExperiment()">进入实验</button>
 
     <script>
-    // 全局状态管理
-    const AppState = {
-        pyodide: null,
-        isReady: false,
-        experiments: {}
-    };
+        // 实验数据配置
+        const experiments = {
+            thermal: Array.from({length: 6}, (_, i) => `热学实验 ${i + 1}`),
+            electromag: Array.from({length: 6}, (_, i) => `电磁学实验 ${i + 1}`)
+        };
 
-    // 事件处理器
-    function bindEvents() {
-        document.getElementById('btn-exp1').addEventListener('click', () => {
-            if (!AppState.isReady) return;
-            selectExperiment(1);
-        });
-        
-        document.getElementById('btn-exp2').addEventListener('click', () => {
-            if (!AppState.isReady) return;
-            selectExperiment(2);
-        });
-    }
-
-    // 实验选择逻辑
-    function selectExperiment(num) {
-        const prevActive = document.querySelector('.experiment.active');
-        if (prevActive) prevActive.style.display = 'none';
-        
-        const experiment = document.getElementById(`experiment${num}`);
-        if (experiment) {
-            experiment.style.display = 'block';
-            experiment.classList.add('active');
-        }
-        
-        // 初始化实验模块
-        if (!AppState.experiments[num]) {
-            initExperimentModule(num);
-        }
-    }
-
-    // 初始化实验模块
-    async function initExperimentModule(num) {
-        try {
-            await AppState.pyodide.runPythonAsync(`
-                from experiment${num} import main
-                AppState.experiments[${num}] = main
-            `);
-            console.log(`Experiment ${num} initialized`);
-        } catch (e) {
-            console.error(`初始化实验${num}失败:`, e);
-        }
-    }
-
-    // Pyodide加载器
-    async function loadPyodideWithProgress() {
-        const statusEl = document.getElementById('status-text');
-        const progressEl = document.getElementById('progress');
-        
-        statusEl.textContent = "正在加载Pyodide核心...";
-        const pyodide = await loadPyodide({
-            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/",
-            stdout: text => console.log('[Pyodide]', text),
-            stderr: text => console.error('[Pyodide]', text),
-        });
-
-        statusEl.textContent = "挂载文件系统...";
-        const moduleFiles = [
-            { path: '/python/main.py', name: 'main' },
-            { path: '/python/experiment1.py', name: 'experiment1' },
-            { path: '/python/experiment2.py', name: 'experiment2' }
-        ];
-
-        for (const {path, name} of moduleFiles) {
-            try {
-                const response = await fetch(path);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const code = await response.text();
-                
-                // 创建目录结构
-                const dirPath = path.split('/').slice(0, -1).join('/');
-                pyodide.FS.mkdirTree(dirPath);
-                
-                pyodide.FS.writeFile(path, code);
-                progressEl.innerHTML += `✅ 已加载 ${path}<br>`;
-            } catch (e) {
-                progressEl.innerHTML += `❌ 加载失败 ${path}: ${e.message}<br>`;
-                throw e;
-            }
-        }
-
-        // 配置Python路径
-        pyodide.runPython(`
-            import sys
-            sys.path.extend(['/', '/python'])
-        `);
-        
-        return pyodide;
-    }
-
-    // 主初始化流程
-    async function main() {
-        try {
-            AppState.pyodide = await loadPyodideWithProgress();
+        // 初始化实验项目下拉菜单
+        function initExperiments() {
+            const courseSelect = document.getElementById('courseSelect');
+            const experimentSelect = document.getElementById('experimentSelect');
+            const selectedCourse = courseSelect.value;
             
-            // 绑定事件
-            bindEvents();
-            
-            // 显示UI
-            document.querySelector('.container').style.display = 'block';
-            document.getElementById('loading').style.display = 'none';
-            AppState.isReady = true;
-            
-            // 初始化主模块
-            await AppState.pyodide.runPythonAsync(`
-                from main import show_menu
-                show_menu()
-            `);
-        } catch (e) {
-            document.getElementById('status-text').innerHTML = 
-                `<span style="color:red">初始化失败: ${e.message}</span>`;
-            console.error('启动失败:', e);
+            experimentSelect.innerHTML = experiments[selectedCourse]
+                .map((exp, index) => `<option value="${selectedCourse}_${index + 1}">${exp}</option>`)
+                .join('');
         }
-    }
 
-    // 启动应用
-    document.addEventListener('DOMContentLoaded', main);
+        // 课程选择变化时更新实验项目
+        document.getElementById('courseSelect').addEventListener('change', initExperiments);
+
+        // 页面跳转函数
+        function navigateToExperiment() {
+            const experimentSelect = document.getElementById('experimentSelect');
+            const selectedValue = experimentSelect.value;
+            window.location.href = `${selectedValue}.html`;
+        }
+
+        // 页面加载时初始化
+        window.onload = initExperiments;
     </script>
 </body>
 </html>
