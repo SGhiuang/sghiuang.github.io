@@ -1,26 +1,30 @@
 {
-  "courses": {
-    "thermal": {
-      "name": "热学实验",
-      "experiments": [
-        "热传导系数测量",
-        "比热容测定",
-        "热膨胀实验",
-        "热辐射研究",
-        "相变热观测",
-        "热力学循环分析"
-      ]
-    },
-    "electromag": {
-      "name": "电磁学实验",
-      "experiments": [
-        "静电场模拟",
-        "电磁感应实验",
-        "电容特性测量",
-        "磁场分布测绘",
-        "交流电路分析",
-        "电磁波观测"
-      ]
-    }
+    "courses": [
+      {
+        "id": "thermal",
+        "name": "热学实验",
+        "path": "thermal",
+        "experiments": [
+          {"id": 1, "title": "1"},
+          {"id": 2, "title": "2"},
+          {"id": 3, "title": "3"},
+          {"id": 4, "title": "4"},
+          {"id": 5, "title": "5"},
+          {"id": 6, "title": "6"}
+        ]
+      },
+      {
+        "id": "electromag",
+        "name": "电磁学实验",
+        "path": "electromag",
+        "experiments": [
+          {"id": 1, "title": "1"},
+          {"id": 2, "title": "2"},
+          {"id": 3, "title": "3"},
+          {"id": 4, "title": "4"},
+          {"id": 5, "title": "5"},
+          {"id": 6, "title": "6"}
+        ]
+      }
+    ]
   }
-}
