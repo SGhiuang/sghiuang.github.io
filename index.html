@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>物理实验系统</title>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+    <script src="pyodide-config.js"></script>
+    <style>
+        /* 保持原有样式 */
+    </style>
+</head>
+<body>
+    <!-- 保持原有界面结构 -->
+    
+    <script>
+    async function initialize() {
+        // 初始化Pyodide
+        window.pyodide = await loadPyodide({
+            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/",
+            stdout: msg => document.getElementById('output').innerHTML += msg,
+            stderr: msg => console.error(msg)
+        });
+        
+        // 加载Python标准库
+        await pyodide.loadPackage(["numpy"]);
+        
+        // 挂载虚拟文件系统
+        const pythonFiles = [
+            '/python/main.py',
+            '/python/experiment1.py',
+            '/python/experiment2.py'
+        ];
+        
+        await Promise.all(pythonFiles.map(async file => {
+            const response = await fetch(file);
+            const content = await response.text();
+            pyodide.FS.writeFile(file, content);
+        }));
+        
+        // 设置Python路径
+        pyodide.runPython(`
+            import sys
+            sys.path.append('/python')
+        `);
+        
+        // 初始化主模块
+        await pyodide.runPythonAsync(`
+            from main import main
+            main()
+        `);
+    }
+    initialize();
+    </script>
+</body>
+</html>
