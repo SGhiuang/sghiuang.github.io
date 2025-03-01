@@ -115,10 +115,7 @@
 
     <div class="selector-container">
         <label>实验课程</label>
-        <select id="courseSelect">
-            <option value="thermal">热学实验</option>
-            <option value="electromag">电磁学实验</option>
-        </select>
+        <select id="courseSelect"></select>
     </div>
 
     <div class="selector-container">
@@ -129,46 +126,57 @@
     <button onclick="navigateToExperiment()">进入实验</button>
 
     <script>
-        const experiments = {
-            thermal: Array.from({length: 6}, (_, i) => `实验${i + 1}：热学测量`),
-            electromag: Array.from({length: 6}, (_, i) => `实验${i + 1}：电磁分析`)
-        };
+        // 初始化数据
+        let experimentData = null;
 
-        function initExperiments() {
-            const course = document.getElementById('courseSelect');
-            const experiment = document.getElementById('experimentSelect');
-            const courseValue = course.value;
+        // 加载JSON数据
+        async function loadExperimentData() {
+            try {
+                const response = await fetch('experiments.json');
+                if (!response.ok) throw new Error('数据加载失败');
+                experimentData = await response.json();
+                initCourseSelect();
+            } catch (error) {
+                console.error(error);
+                alert('实验数据加载失败，请检查网络连接');
+            }
+        }
+
+        // 初始化课程选择
+        function initCourseSelect() {
+            const courseSelect = document.getElementById('courseSelect');
+            courseSelect.innerHTML = Object.values(experimentData.courses)
+                .map(course => `<option value="${course.name}">${course.name}</option>`)
+                .join('');
+            updateExperimentSelect();
+        }
+
+        // 更新实验项目选择
+        function updateExperimentSelect() {
+            const courseName = document.getElementById('courseSelect').value;
+            const course = Object.values(experimentData.courses)
+                .find(c => c.name === courseName);
             
-            experiment.innerHTML = experiments[courseValue]
+            const experimentSelect = document.getElementById('experimentSelect');
+            experimentSelect.innerHTML = course.experiments
                 .map((exp, index) => 
-                    `<option value="${courseValue}_exp${index + 1}">${exp}</option>`
+                    `<option value="${courseName}_exp${index + 1}">实验${index + 1}：${exp}</option>`
                 ).join('');
         }
 
-        // 移动端优化：增加触摸反馈
-        document.querySelectorAll('select').forEach(select => {
-            select.addEventListener('touchstart', () => {
-                select.style.backgroundColor = '#f0f4f8';
-            });
-            select.addEventListener('touchend', () => {
-                select.style.backgroundColor = '#f8f9fa';
-            });
-        });
+        // 课程选择变化监听
+        document.getElementById('courseSelect').addEventListener('change', updateExperimentSelect);
 
-        document.getElementById('courseSelect').addEventListener('change', initExperiments);
-        window.onload = initExperiments;
-
+        // 页面跳转
         function navigateToExperiment() {
-            const experiment = document.getElementById('experimentSelect').value;
-            if (experiment) {
-                // 添加加载状态提示
-                const btn = document.querySelector('button');
-                btn.innerHTML = '加载中...';
-                setTimeout(() => {
-                    window.location.href = `${experiment}.html`;
-                }, 300);
+            const selected = document.getElementById('experimentSelect').value;
+            if (selected) {
+                window.location.href = `${selected}.html`;
             }
         }
+
+        // 初始化加载
+        loadExperimentData();
     </script>
 </body>
 </html>
