@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>实验一：液体比汽化热测量</title>
+    <style>
+        .experiment { margin: 20px; padding: 20px; border: 1px solid #ccc; }
+        .input-group { margin: 10px 0; }
+        .monospace { font-family: monospace; }
+        input[type="text"] { width: 300px; }
+        table { border-collapse: collapse; margin-top: 20px; }
+        td, th { border: 1px solid #ddd; padding: 8px; }
+    </style>
+</head>
+<body>
+    <div class="experiment">
+        <h2>实验一：液体比汽化热测量</h2>
+        
+        <div class="input-group">
+            <h3>AD590传感器定标</h3>
+            <div>温度θ（℃, 逗号分隔）: <input type="text" id="theta" value="13.90,19.25,24.90,29.80,32.50"></div>
+            <div>电压u（mV, 逗号分隔）: <input type="text" id="voltage" value="285.7,291.1,296.8,301.8,304.5"></div>
+        </div>
+
+        <div class="input-group">
+            <h3>固定参数</h3>
+            <div>铝量热器质量（g）: <input type="number" id="m1" step="0.01" value="46.45"></div>
+            <div>铝搅拌器质量（g）: <input type="number" id="m2" step="0.01" value="67.37"></div>
+        </div>
+
+        <div class="input-group">
+            <h3>实验数据（三组）</h3>
+            <div id="groups">
+                <div class="group">
+                    <h4>第一组</h4>
+                    <div>水质量（g）: <input type="number" class="m" step="0.1" value="153.90"></div>
+                    <div>初始温度θ1（℃）: <input type="number" class="t1" step="0.01" value="12.92"></div>
+                    <div>最终温度θ2（℃）: <input type="number" class="t2" step="0.01" value="37.03"></div>
+                    <div>蒸汽质量（g）: <input type="number" class="M" step="0.01" value="6.66"></div>
+                </div>
+                <div class="group">
+                    <h4>第二组</h4>
+                    <div>水质量（g）: <input type="number" class="m" step="0.1" value="145.30"></div>
+                    <div>初始温度θ1（℃）: <input type="number" class="t1" step="0.01" value="13.05"></div>
+                    <div>最终温度θ2（℃）: <input type="number" class="t2" step="0.01" value="36.50"></div>
+                    <div>蒸汽质量（g）: <input type="number" class="M" step="0.01" value="6.50"></div>
+                </div>
+                <div class="group">
+                    <h4>第三组</h4>
+                    <div>水质量（g）: <input type="number" class="m" step="0.1" value="158.40"></div>
+                    <div>初始温度θ1（℃）: <input type="number" class="t1" step="0.01" value="12.85"></div>
+                    <div>最终温度θ2（℃）: <input type="number" class="t2" step="0.01" value="37.20"></div>
+                    <div>蒸汽质量（g）: <input type="number" class="M" step="0.01" value="6.80"></div>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="runExperiment1()">开始计算</button>
+        <div id="result1"></div>
+    </div>
+
+    <script>
+        function runExperiment1() {
+            // 数据采集
+            const theta = document.getElementById('theta').value.split(',').map(Number)
+            const u = document.getElementById('voltage').value.split(',').map(Number)
+            const m1 = parseFloat(document.getElementById('m1').value) / 1000
+            const m2 = parseFloat(document.getElementById('m2').value) / 1000
+            
+            // 采集三组实验数据
+            const experiments = []
+            document.querySelectorAll('.group').forEach(group => {
+                experiments.push({
+                    m: parseFloat(group.querySelector('.m').value) / 1000,
+                    θ1: parseFloat(group.querySelector('.t1').value),
+                    θ2: parseFloat(group.querySelector('.t2').value),
+                    M: parseFloat(group.querySelector('.M').value) / 1000
+                })
+            })
+
+            // 传感器定标计算
+            const I = u  // I(μA) = u(mV)
+            const X = theta.map(t => [t, 1])
+            const Y = I
+            const [B, A] = linearRegression(X, Y)
+
+            // 比汽化热计算
+            const Cw = 4187.0, C_Al = 900.2, m3C3 = 1796.0, L_theory = 2.25e6
+            const results = experiments.map(exp => {
+                const Δθ = exp.θ2 - exp.θ1
+                const Q_absorb = (exp.m*Cw + m1*C_Al + m2*C_Al) * Δθ
+                const Q_release = exp.M * Cw * (100 - exp.θ2)
+                const L = (Q_absorb - Q_release) / exp.M
+                const L_corr = (Q_absorb + m3C3*Δθ - Q_release) / exp.M
+                return {
+                    L: L,
+                    L_corr: L_corr,
+                    Δθ: Δθ,
+                    dev: (L - L_theory)/L_theory*100,
+                    dev_corr: (L_corr - L_theory)/L_theory*100
+                }
+            })
+
+            // 结果展示
+            let html = `<h3>定标结果</h3>
+                <p>温度-电流关系式：I = ${B.toFixed(2)}θ + ${A.toFixed(1)} (μA)</p>
+                <p>传感器灵敏度 B = ${B.toFixed(2)} μA/°C</p>
+
+                <h3>实验结果</h3>
+                <table>
+                    <tr><th>组别</th><th>Δθ(℃)</th><th>未修正L(×10⁶)</th><th>偏差%</th><th>修正L'(×10⁶)</th><th>偏差%</th></tr>`
+            
+            results.forEach((res, i) => {
+                html += `<tr>
+                    <td>第${i+1}组</td>
+                    <td>${res.Δθ.toFixed(2)}</td>
+                    <td>${(res.L/1e6).toFixed(3)}</td>
+                    <td>${res.dev.toFixed(1)}%</td>
+                    <td>${(res.L_corr/1e6).toFixed(3)}</td>
+                    <td>${res.dev_corr.toFixed(1)}%</td>
+                </tr>`
+            })
+
+            const avg_L = results.reduce((sum, res) => sum + res.L, 0) / 3
+            const avg_L_corr = results.reduce((sum, res) => sum + res.L_corr, 0) / 3
+            html += `</table>
+                <p>平均比汽化热（未修正）: ${(avg_L/1e6).toFixed(3)}×10⁶ J/kg</p>
+                <p>平均比汽化热（修正后）: ${(avg_L_corr/1e6).toFixed(3)}×10⁶ J/kg</p>`
+
+            document.getElementById('result1').innerHTML = html
+        }
+
+        function linearRegression(X, Y) {
+            const XT = X[0].map((_, colIndex) => X.map(row => row[colIndex]))
+            const XTX = XT.map(row => XT.map(col => row.reduce((a, v, i) => a + v * col[i], 0)))
+            const XTY = XT.map(row => row.reduce((a, v, i) => a + v * Y[i], 0))
+            
+            // 解方程 XTX * B = XTY
+            const det = XTX[0][0] * XTX[1][1] - XTX[0][1] * XTX[1][0]
+            const B = (XTX[1][1] * XTY[0] - XTX[0][1] * XTY[1]) / det
+            const A = (-XTX[1][0] * XTY[0] + XTX[0][0] * XTY[1]) / det
+            return [B, A]
+        }
+    </script>
+</body>
+</html>

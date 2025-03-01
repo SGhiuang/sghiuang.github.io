@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>实验二：金属比热容测量</title>
+    <style>
+        .experiment { margin: 20px; padding: 20px; border: 1px solid #ccc; }
+        .input-group { margin: 10px 0; }
+        .sample { margin: 15px 0; padding: 10px; background: #f5f5f5; }
+        table { border-collapse: collapse; margin-top: 20px; }
+        td, th { border: 1px solid #ddd; padding: 8px; }
+    </style>
+</head>
+<body>
+    <div class="experiment">
+        <h2>实验二：金属比热容测量</h2>
+        
+        <div class="input-group">
+            <h3>铜样品数据</h3>
+            <div>质量（g）: <input type="number" id="cuMass" step="0.01" value="12.35"></div>
+            <div>冷却时间（s）: <input type="number" id="cuTime" step="0.1" value="16.78"></div>
+        </div>
+
+        <div class="input-group">
+            <h3>待测样品</h3>
+            <div class="sample">
+                <h4>铁样品</h4>
+                <div>质量（g）: <input type="number" id="feMass" step="0.01" value="11.03"></div>
+                <div>冷却时间（s）: <input type="number" id="feTime" step="0.1" value="18.28"></div>
+            </div>
+            <div class="sample">
+                <h4>铝样品</h4>
+                <div>质量（g）: <input type="number" id="alMass" step="0.01" value="3.99"></div>
+                <div>冷却时间（s）: <input type="number" id="alTime" step="0.1" value="13.40"></div>
+            </div>
+        </div>
+
+        <button onclick="runExperiment2()">开始计算</button>
+        <div id="result2"></div>
+    </div>
+
+    <script>
+        function runExperiment2() {
+            // 常量定义
+            const C_Cu = 0.0940  // 铜的比热容 Cal/(g·°C)
+            const STANDARD = { Fe: 0.110, Al: 0.230 }
+
+            // 获取输入数据
+            const cuMass = parseFloat(document.getElementById('cuMass').value)
+            const cuTime = parseFloat(document.getElementById('cuTime').value)
+            
+            const feMass = parseFloat(document.getElementById('feMass').value)
+            const feTime = parseFloat(document.getElementById('feTime').value)
+            
+            const alMass = parseFloat(document.getElementById('alMass').value)
+            const alTime = parseFloat(document.getElementById('alTime').value)
+
+            // 计算结果
+            const results = []
+            // 铁样品计算
+            const C_Fe = C_Cu * (cuMass * feTime) / (feMass * cuTime)
+            results.push({
+                name: '铁',
+                symbol: 'Fe',
+                mass: feMass,
+                time: feTime,
+                C: C_Fe,
+                std: STANDARD.Fe
+            })
+            
+            // 铝样品计算
+            const C_Al = C_Cu * (cuMass * alTime) / (alMass * cuTime)
+            results.push({
+                name: '铝',
+                symbol: 'Al',
+                mass: alMass,
+                time: alTime,
+                C: C_Al,
+                std: STANDARD.Al
+            })
+
+            // 生成结果表格
+            let html = `<table>
+                <tr><th>金属</th><th>质量(g)</th><th>时间(s)</th><th>比热容</th><th>标准值</th><th>误差%</th></tr>
+                <tr>
+                    <td>铜</td>
+                    <td>${cuMass.toFixed(2)}</td>
+                    <td>${cuTime.toFixed(2)}</td>
+                    <td>${C_Cu.toFixed(3)}</td>
+                    <td>${C_Cu.toFixed(3)}</td>
+                    <td>-</td>
+                </tr>`
+            
+            results.forEach(res => {
+                const error = ((res.C - res.std) / res.std * 100).toFixed(1)
+                html += `<tr>
+                    <td>${res.name}</td>
+                    <td>${res.mass.toFixed(2)}</td>
+                    <td>${res.time.toFixed(2)}</td>
+                    <td>${res.C.toFixed(3)}</td>
+                    <td>${res.std.toFixed(3)}</td>
+                    <td>${error}%</td>
+                </tr>`
+            })
+            
+            html += `</table>`
+            document.getElementById('result2').innerHTML = html
+        }
+    </script>
+</body>
+</html>
