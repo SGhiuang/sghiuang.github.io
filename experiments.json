@@ -5,12 +5,12 @@
         "name": "热学实验",
         "path": "thermal",
         "experiments": [
-          {"id": 1, "title": "1"},
-          {"id": 2, "title": "2"},
-          {"id": 3, "title": "3"},
-          {"id": 4, "title": "4"},
-          {"id": 5, "title": "5"},
-          {"id": 6, "title": "6"}
+          {"id": 1, "title": "热传导测量"},
+          {"id": 2, "title": "比热容测定"},
+          {"id": 3, "title": "热膨胀实验"},
+          {"id": 4, "title": "热辐射研究"},
+          {"id": 5, "title": "相变热观测"},
+          {"id": 6, "title": "热力学循环"}
         ]
       },
       {
@@ -18,12 +18,12 @@
         "name": "电磁学实验",
         "path": "electromag",
         "experiments": [
-          {"id": 1, "title": "1"},
-          {"id": 2, "title": "2"},
-          {"id": 3, "title": "3"},
-          {"id": 4, "title": "4"},
-          {"id": 5, "title": "5"},
-          {"id": 6, "title": "6"}
+          {"id": 1, "title": "静电场模拟"},
+          {"id": 2, "title": "电磁感应实验"},
+          {"id": 3, "title": "电容特性测量"},
+          {"id": 4, "title": "磁场分布测绘"},
+          {"id": 5, "title": "交流电路分析"},
+          {"id": 6, "title": "电磁波观测"}
         ]
       }
     ]
