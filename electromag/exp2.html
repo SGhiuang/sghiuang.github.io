@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>实验二：用惠斯通电桥测量电阻</title>
+
+<style>
+
+:root {
+
+--primary-color: #3498db;
+
+--text-color: #2c3e50;
+
+}
+
+body {
+
+font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+
+margin: 0;
+
+padding: 15px;
+
+background-color: #f5f7f9;
+
+}
+
+.container {
+
+max-width: 800px;
+
+margin: 0 auto;
+
+position: relative;
+
+}
+
+.home-btn {
+
+position: absolute;
+
+top: 10px;
+
+right: 15px;
+
+padding: 10px 20px;
+
+background-color: var(--primary-color);
+
+color: white;
+
+border: none;
+
+border-radius: 8px;
+
+font-size: 0.95rem;
+
+font-weight: 500;
+
+text-decoration: none;
+
+transition: all 0.3s ease;
+
+box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+
+cursor: pointer;
+
+z-index: 10;
+
+}
+
+.card {
+
+background: white;
+
+border-radius: 10px;
+
+padding: 15px;
+
+margin: 15px 0;
+
+box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+
+}
+
+.input-group {
+
+margin: 10px 0;
+
+}
+
+input, select {
+
+box-sizing: border-box;
+
+width: calc(100% - 20px);
+
+padding: 10px;
+
+border: 2px solid #e0e0e0;
+
+border-radius: 8px;
+
+font-size: 1rem;
+
+margin: 8px 10px;
+
+}
+
+button {
+
+width: 100%;
+
+padding: 12px 24px;
+
+margin: 20px 0;
+
+background-color: var(--primary-color);
+
+color: white;
+
+border: none;
+
+border-radius: 8px;
+
+font-size: 1rem;
+
+font-weight: 500;
+
+transition: all 0.3s ease;
+
+box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+
+cursor: pointer;
+
+}
+
+table {
+
+width: 100%;
+
+border-collapse: collapse;
+
+margin: 20px 0;
+
+}
+
+td, th {
+
+border: 1px solid #ddd;
+
+padding: 10px;
+
+text-align: center;
+
+}
+h1 {
+    margin-top: 40px;
+    text-align: center;
+    padding: 0 60px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<a href=" " class="home-btn">返回主页</a >
+
+<h1 style="text-align: center;">用惠斯通电桥测量电阻</h1>
+
+<div class="card">
+
+<h2>输入五组R2测量值（Ω）</h2>
+
+<div class="input-group" id="r2-inputs">
+
+<input type="number" id="r2_1" placeholder="第1组R2值" step="0.1">
+
+<input type="number" id="r2_2" placeholder="第2组R2值" step="0.1">
+
+<input type="number" id="r2_3" placeholder="第3组R2值" step="0.1">
+
+<input type="number" id="r2_4" placeholder="第4组R2值" step="0.1">
+
+<input type="number" id="r2_5" placeholder="第5组R2值" step="0.1">
+
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>选择比例关系</h2>
+
+<select id="ratio">
+
+<option value="10">R2/R3 = 10</option>
+
+<option value="1" selected>R2/R3 = 1</option>
+
+<option value="0.1">R2/R3 = 0.1</option>
+
+</select>
+
+</div>
+
+<div class="card">
+
+<h2>输入R4测量值（Ω）</h2>
+
+<div class="input-group">
+
+<input type="number" id="r4_1" placeholder="第1组R4值" step="0.1">
+
+<input type="number" id="r4_2" placeholder="第2组R4值" step="0.1">
+
+<input type="number" id="r4_3" placeholder="第3组R4值" step="0.1">
+
+<input type="number" id="r4_4" placeholder="第4组R4值" step="0.1">
+
+<input type="number" id="r4_5" placeholder="第5组R4值" step="0.1">
+
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>输入交换后R4'测量值（Ω）</h2>
+
+<div class="input-group">
+
+<input type="number" id="r4p_1" placeholder="第1组R4'值" step="0.1">
+
+<input type="number" id="r4p_2" placeholder="第2组R4'值" step="0.1">
+
+<input type="number" id="r4p_3" placeholder="第3组R4'值" step="0.1">
+
+<input type="number" id="r4p_4" placeholder="第4组R4'值" step="0.1">
+
+<input type="number" id="r4p_5" placeholder="第5组R4'值" step="0.1">
+
+</div>
+
+</div>
+
+<button onclick="calculate()">开始计算</button>
+
+<div class="card">
+
+<h2>实验参数</h2>
+
+<table id="parameters">
+
+<tr><th>比例关系</th><td id="ratio-display"></td></tr>
+
+</table>
+
+</div>
+
+<div class="card">
+
+<h2>测量结果</h2>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>组别</th><th>R2(Ω)</th><th>R3(Ω)</th><th>R4(Ω)</th><th>R4'(Ω)</th><th>Rx(Ω)</th>
+
+</tr>
+
+</thead>
+
+<tbody id="results"></tbody>
+
+</table>
+
+</div>
+
+<div class="card">
+
+<h2>统计结果</h2>
+
+<table>
+
+<tr><th>Rx平均值</th><td id="average"></td></tr>
+
+<tr><th>标准偏差</th><td id="stddev"></td></tr>
+
+<tr><th>最终结果</th><td id="final"></td></tr>
+
+</table>
+
+</div>
+
+</div>
+
+<script>
+
+function calculate() {
+
+// 收集输入数据
+
+const inputs = {
+
+r2: [1,2,3,4,5].map(i => parseFloat(document.getElementById(`r2_${i}`).value)),
+
+ratio: parseFloat(document.getElementById('ratio').value),
+
+r4: [1,2,3,4,5].map(i => parseFloat(document.getElementById(`r4_${i}`).value)),
+
+r4p: [1,2,3,4,5].map(i => parseFloat(document.getElementById(`r4p_${i}`).value))
+
+};
+
+// 数据验证
+
+if ([...inputs.r2, ...inputs.r4, ...inputs.r4p].some(isNaN)) {
+
+alert("请填写所有有效测量值");
+
+return;
+
+}
+
+// 计算R3和Rx
+
+const r3 = inputs.r2.map(r2 => r2 / inputs.ratio);
+
+const rx = inputs.r4.map((r4, i) => Math.sqrt(r4 * inputs.r4p[i]));
+
+// 统计计算
+
+const avg = rx.reduce((a,b) => a + b, 0) / rx.length;
+
+const std = Math.sqrt(rx.map(x => (x - avg)**2).reduce((a,b) => a + b) / rx.length);
+
+// 更新显示
+
+document.getElementById('ratio-display').textContent = `R2/R3 = ${inputs.ratio}`;
+
+const resultsTbody = document.getElementById('results');
+
+resultsTbody.innerHTML = inputs.r2.map((r2, i) => `
+
+<tr>
+
+<td>第${i+1}组</td>
+
+<td>${r2.toFixed(2)}</td>
+
+<td>${r3[i].toFixed(2)}</td>
+
+<td>${inputs.r4[i].toFixed(2)}</td>
+
+<td>${inputs.r4p[i].toFixed(2)}</td>
+
+<td>${rx[i].toFixed(2)}</td>
+
+</tr>
+
+`).join('');
+
+document.getElementById('average').textContent = `${avg.toFixed(2)} Ω`;
+
+document.getElementById('stddev').textContent = `${std.toFixed(2)} Ω`;
+
+document.getElementById('final').textContent = 
+
+`Rx = (${avg.toFixed(2)} ± ${std.toFixed(2)}) Ω`;
+
+}
+
+</script>
+
+</body>
+
+</html>
