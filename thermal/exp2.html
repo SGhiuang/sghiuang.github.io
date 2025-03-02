@@ -20,6 +20,52 @@
         .container {
             max-width: 800px;
             margin: 0 auto;
+            position: relative;
+        }
+
+        /* 新增返回按钮样式 */
+        .home-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        @media (max-width: 480px) {
+            .home-btn {
+                padding: 8px 16px;
+                font-size: 0.85rem;
+                top: 5px;
+                right: 10px;
+            }
+        }
+
+        .home-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background-color: #2980b9;
+        }
+
+        .home-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            margin-top: 40px;
+            text-align: center;
+            padding: 0 60px;
         }
 
         .card {
@@ -46,31 +92,28 @@
 
         button {
             width: 100%;
-            padding: 16px;
+            padding: 12px 24px;
             margin: 20px 0;
             background-color: var(--primary-color);
             color: white;
             border: none;
             border-radius: 8px;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 500;
-            transition: all 0.2s ease;
             transition: all 0.3s ease;
-            transform-origin: center;
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        
-            transition-property: transform, box-shadow, background-color;
+            cursor: pointer;
         }
 
         button:hover {
-            transform: scale(1);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             background-color: #2980b9;
         }
 
         button:active {
-            transform: scale(0.98);
-            background-color: #2980b9;
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         table {
@@ -88,6 +131,7 @@
 </head>
 <body>
     <div class="container">
+        <a href="/" class="home-btn">返回主页</a>
         <h1>金属比热容测量</h1>
 
         <div class="card">
