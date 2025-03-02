@@ -7,6 +7,7 @@
     <style>
         :root {
             --primary-color: #3498db;
+            --hover-color: #2980b9;
             --text-color: #2c3e50;
         }
 
@@ -18,11 +19,39 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             position: relative;
         }
 
+        /* 统一按钮样式 (与exp2一致) */
+        button {
+            width: 100%;
+            padding: 12px 24px;
+            margin: 20px 0;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background-color: var(--hover-color);
+        }
+
+        button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* 返回按钮样式 */
         .home-btn {
             position: absolute;
             top: 10px;
@@ -41,6 +70,51 @@
             z-index: 10;
         }
 
+        .home-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background-color: #2980b9;
+        }
+
+        .home-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        @media (max-width: 480px) {
+            .home-btn {
+                padding: 8px 16px;
+                font-size: 0.85rem;
+                top: 5px;
+                right: 10px;
+            }
+        }
+
+        /* 保留加载状态 */
+        button.loading {
+            pointer-events: none;
+            opacity: 0.9;
+        }
+
+        button.loading::after {
+            content: "";
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            top: 50%;
+            left: 50%;
+            margin: -12px 0 0 -12px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 以下原有样式保持不变 */
         h1 {
             margin-top: 50px;
             text-align: center;
@@ -50,73 +124,37 @@
         .card {
             background: white;
             border-radius: 10px;
-            padding: 15px;
+            padding: 20px;
             margin: 15px 0;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
         }
 
         .method-section {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            gap: 25px;
             margin-bottom: 20px;
         }
 
         .input-group {
-            margin: 10px 0;
+            margin: 15px 0;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 15px;
         }
 
         input {
             box-sizing: border-box;
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-size: 1rem;
-        }
-
-        button {
-            width: 100%;
-            padding: 16px;
-            margin: 20px 0;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: 500;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-            cursor: pointer;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-
-        td, th {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
-        }
-
-        .result-columns {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .method-title {
-            color: var(--primary-color);
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 5px;
-            margin-bottom: 15px;
-        }
+        /* 其余样式保持不变... */
     </style>
 </head>
 <body>
@@ -125,14 +163,21 @@
         <h1>伏安法测电阻</h1>
 
         <div class="method-section">
-            <!-- 内接法参数 -->
+            <!-- 内接法 -->
             <div class="card">
-                <h3 class="method-title">内接法电表内阻</h3>
+                <h3 class="method-title">内接法设置</h3>
                 <div class="input-group">
                     <input type="number" id="innerResistance" placeholder="电流表内阻 (Ω)" step="0.01" value="0">
                 </div>
-                <h3 class="method-title">内接法测量数据</h3>
+                
+                <h3 class="method-title">测量数据</h3>
                 <div id="innerDataInputs">
+                    <template id="innerDataTemplate">
+                        <div class="input-group">
+                            <input type="number" placeholder="电压 (V)" class="inner-voltage" step="0.01">
+                            <input type="number" placeholder="电流 (mA)" class="inner-current" step="0.01">
+                        </div>
+                    </template>
                     <div class="input-group">
                         <input type="number" placeholder="电压1 (V)" class="inner-voltage" step="0.01">
                         <input type="number" placeholder="电流1 (mA)" class="inner-current" step="0.01">
@@ -156,13 +201,14 @@
                 </div>
             </div>
 
-            <!-- 外接法参数 -->
+            <!-- 外接法 -->
             <div class="card">
-                <h3 class="method-title">外接法电表内阻</h3>
+                <h3 class="method-title">外接法设置</h3>
                 <div class="input-group">
                     <input type="number" id="outerResistance" placeholder="电压表内阻 (Ω)" step="0.01" value="0">
                 </div>
-                <h3 class="method-title">外接法测量数据</h3>
+                
+                <h3 class="method-title">测量数据</h3>
                 <div id="outerDataInputs">
                     <div class="input-group">
                         <input type="number" placeholder="电压1 (V)" class="outer-voltage" step="0.01">
@@ -189,11 +235,12 @@
         </div>
 
         <button onclick="calculateResistance()">开始计算</button>
+        </button>
 
         <div class="card" id="detailedResult" style="display: none;">
             <h2>详细数据</h2>
             <div class="result-columns">
-                <div>
+                <div class="result-card">
                     <h3 class="method-title">内接法数据</h3>
                     <table>
                         <thead>
@@ -206,7 +253,7 @@
                         <tbody id="innerDataTable"></tbody>
                     </table>
                 </div>
-                <div>
+                <div class="result-card">
                     <h3 class="method-title">外接法数据</h3>
                     <table>
                         <thead>
@@ -225,107 +272,125 @@
         <div class="card" id="finalResult" style="display: none;">
             <h2>最终结果</h2>
             <div class="result-columns">
-                <div>
+                <div class="result-card">
                     <h3 class="method-title">内接法结果</h3>
-                    <p>修正后电阻: <span id="innerCorrected"></span> Ω</p>
-                    <p>A类不确定度: ±<span id="innerUncertainty"></span> Ω</p>
-                    <p>表达式: R = (<span id="innerExpression"></span>) Ω</p>
+                    <p class="result-value">修正后电阻: <span id="innerCorrected"></span> Ω</p>
+                    <p class="result-value">A类不确定度: ±<span id="innerUncertainty"></span> Ω</p>
+                    <p class="result-value">表达式: R = (<span id="innerExpression"></span>) Ω</p>
                 </div>
-                <div>
+                <div class="result-card">
                     <h3 class="method-title">外接法结果</h3>
-                    <p>修正后电阻: <span id="outerCorrected"></span> Ω</p>
-                    <p>A类不确定度: ±<span id="outerUncertainty"></span> Ω</p>
-                    <p>表达式: R = (<span id="outerExpression"></span>) Ω</p>
+                    <p class="result-value">修正后电阻: <span id="outerCorrected"></span> Ω</p>
+                    <p class="result-value">A类不确定度: ±<span id="outerUncertainty"></span> Ω</p>
+                    <p class="result-value">表达式: R = (<span id="outerExpression"></span>) Ω</p>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        function calculateResistance() {
-            // 收集内接法数据
-            const innerVoltages = Array.from(document.getElementsByClassName('inner-voltage'))
-                .map(i => parseFloat(i.value)).filter(v => !isNaN(v));
-            const innerCurrents = Array.from(document.getElementsByClassName('inner-current'))
-                .map(i => parseFloat(i.value)).filter(v => !isNaN(v));
-            
-            // 收集外接法数据
-            const outerVoltages = Array.from(document.getElementsByClassName('outer-voltage'))
-                .map(i => parseFloat(i.value)).filter(v => !isNaN(v));
-            const outerCurrents = Array.from(document.getElementsByClassName('outer-current'))
-                .map(i => parseFloat(i.value)).filter(v => !isNaN(v));
+        async function calculateResistance() {
+            const btn = document.getElementById('calculateBtn');
+            try {
+                // 按钮动效
+                btn.classList.add('loading');
+                btn.disabled = true;
+                document.querySelector('.btn-text').style.opacity = '0';
+                await new Promise(r => setTimeout(r, 800));
 
-            // 获取仪表参数
-            const R_inner = parseFloat(document.getElementById('innerResistance').value) || 0;
-            const R_outer = parseFloat(document.getElementById('outerResistance').value) || 0;
-
-            // 数据验证
-            const validateData = (voltages, currents, method) => {
-                if (voltages.length < 2 || currents.length < 2 || voltages.length !== currents.length) {
-                    alert(`${method}需要至少2组有效数据`);
-                    return false;
-                }
-                return true;
-            };
-
-            if (!validateData(innerVoltages, innerCurrents, '内接法')) return;
-            if (!validateData(outerVoltages, outerCurrents, '外接法')) return;
-
-            // 计算函数
-            const calculateMethod = (voltages, currents, R_meter, isInner) => {
-                const resistances = voltages.map((v, i) => v / (currents[i]/1000));
-                const avg = resistances.reduce((a,b) => a + b, 0) / resistances.length;
-                const stdDev = Math.sqrt(resistances.reduce((a,b) => a + Math.pow(b - avg, 2), 0) / (resistances.length - 1));
-                const uA = stdDev / Math.sqrt(resistances.length);
-                
-                const corrected = isInner 
-                    ? avg - R_meter 
-                    : (avg * R_meter) / (R_meter - avg) || avg;
-
-                return {
-                    resistances,
-                    avg,
-                    stdDev,
-                    uA,
-                    corrected
+                // 收集数据
+                const getValidData = (voltageClass, currentClass) => {
+                    const voltages = Array.from(document.getElementsByClassName(voltageClass))
+                        .map(i => parseFloat(i.value)).filter(v => !isNaN(v));
+                    const currents = Array.from(document.getElementsByClassName(currentClass))
+                        .map(i => parseFloat(i.value)).filter(v => !isNaN(v));
+                    
+                    // 验证数据
+                    if (voltages.length < 2 || currents.length < 2 || voltages.length !== currents.length) {
+                        const inputs = [...document.getElementsByClassName(voltageClass), 
+                                      ...document.getElementsByClassName(currentClass)];
+                        inputs.forEach(input => {
+                            if (!input.value) input.classList.add('error-shake');
+                        });
+                        setTimeout(() => {
+                            inputs.forEach(input => input.classList.remove('error-shake'));
+                        }, 400);
+                        throw new Error('请填写至少2组有效数据');
+                    }
+                    return { voltages, currents };
                 };
-            };
 
-            // 分别计算两种方法
-            const innerResult = calculateMethod(innerVoltages, innerCurrents, R_inner, true);
-            const outerResult = calculateMethod(outerVoltages, outerCurrents, R_outer, false);
+                // 获取两种方法数据
+                const innerData = getValidData('inner-voltage', 'inner-current');
+                const outerData = getValidData('outer-voltage', 'outer-current');
+                const R_inner = parseFloat(document.getElementById('innerResistance').value) || 0;
+                const R_outer = parseFloat(document.getElementById('outerResistance').value) || 0;
 
-            // 更新表格数据
-            document.getElementById('innerDataTable').innerHTML = innerVoltages.map((v, i) => `
-                <tr>
-                    <td>${v.toFixed(2)}</td>
-                    <td>${innerCurrents[i].toFixed(2)}</td>
-                    <td>${innerResult.resistances[i].toFixed(1)}</td>
-                </tr>
-            `).join('');
+                // 计算函数
+                const calculateMethod = (data, R_meter, isInner) => {
+                    const resistances = data.voltages.map((v, i) => 
+                        v / (data.currents[i]/1000));
+                    const avg = resistances.reduce((a,b) => a + b, 0) / resistances.length;
+                    const stdDev = Math.sqrt(resistances.reduce((a,b) => 
+                        a + Math.pow(b - avg, 2), 0) / (resistances.length - 1));
+                    const uA = stdDev / Math.sqrt(resistances.length);
+                    
+                    const corrected = isInner ? 
+                        avg - R_meter : 
+                        (avg * R_meter) / (R_meter - avg) || avg;
 
-            document.getElementById('outerDataTable').innerHTML = outerVoltages.map((v, i) => `
-                <tr>
-                    <td>${v.toFixed(2)}</td>
-                    <td>${outerCurrents[i].toFixed(2)}</td>
-                    <td>${outerResult.resistances[i].toFixed(1)}</td>
-                </tr>
-            `).join('');
+                    return { resistances, avg, uA, corrected };
+                };
 
-            // 更新最终结果
-            document.getElementById('innerCorrected').textContent = innerResult.corrected.toFixed(1);
-            document.getElementById('innerUncertainty').textContent = innerResult.uA.toFixed(1);
-            document.getElementById('innerExpression').textContent = 
-                `${innerResult.corrected.toFixed(1)} ± ${innerResult.uA.toFixed(1)}`;
+                // 计算结果
+                const innerResult = calculateMethod(innerData, R_inner, true);
+                const outerResult = calculateMethod(outerData, R_outer, false);
 
-            document.getElementById('outerCorrected').textContent = outerResult.corrected.toFixed(1);
-            document.getElementById('outerUncertainty').textContent = outerResult.uA.toFixed(1);
-            document.getElementById('outerExpression').textContent = 
-                `${outerResult.corrected.toFixed(1)} ± ${outerResult.uA.toFixed(1)}`;
+                // 更新显示
+                const formatData = (voltage, current, resistance, index) => `
+                    <tr>
+                        <td>${voltage.toFixed(2)}</td>
+                        <td>${current.toFixed(2)}</td>
+                        <td>${resistance[index].toFixed(1)}</td>
+                    </tr>
+                `;
 
-            // 显示结果区域
-            document.getElementById('detailedResult').style.display = 'block';
-            document.getElementById('finalResult').style.display = 'block';
+                document.getElementById('innerDataTable').innerHTML = 
+                    innerData.voltages.map((v, i) => 
+                        formatData(v, innerData.currents[i], innerResult.resistances, i)).join('');
+                
+                document.getElementById('outerDataTable').innerHTML = 
+                    outerData.voltages.map((v, i) => 
+                        formatData(v, outerData.currents[i], outerResult.resistances, i)).join('');
+
+                // 更新最终结果
+                const setResult = (prefix, { corrected, uA }) => {
+                    document.getElementById(`${prefix}Corrected`).textContent = corrected.toFixed(1);
+                    document.getElementById(`${prefix}Uncertainty`).textContent = uA.toFixed(1);
+                    document.getElementById(`${prefix}Expression`).textContent = 
+                        `${corrected.toFixed(1)} ± ${uA.toFixed(1)}`;
+                };
+
+                setResult('inner', innerResult);
+                setResult('outer', outerResult);
+
+                // 显示结果区域
+                document.getElementById('detailedResult').style.display = 'block';
+                document.getElementById('finalResult').style.display = 'block';
+
+            } catch (error) {
+                // 错误处理
+                btn.style.backgroundColor = var(--error-color);
+                setTimeout(() => {
+                    btn.style.backgroundColor = var(--primary-color);
+                }, 1000);
+                alert(error.message);
+            } finally {
+                // 恢复按钮
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                document.querySelector('.btn-text').style.opacity = '1';
+            }
         }
     </script>
 </body>
