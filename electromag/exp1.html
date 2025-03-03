@@ -8,6 +8,7 @@
         :root {
             --primary-color: #3498db;
             --hover-color: #2980b9;
+            --error-color: #e74c3c;
             --text-color: #2c3e50;
         }
 
@@ -24,7 +25,6 @@
             position: relative;
         }
 
-        /* 统一按钮样式 (与exp2一致) */
         button {
             width: 100%;
             padding: 12px 24px;
@@ -46,12 +46,6 @@
             background-color: var(--hover-color);
         }
 
-        button:active {
-            transform: translateY(1px);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        /* 返回按钮样式 */
         .home-btn {
             position: absolute;
             top: 10px;
@@ -68,32 +62,6 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
             cursor: pointer;
             z-index: 10;
-        }
-
-        .home-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            background-color: #2980b9;
-        }
-
-        .home-btn:active {
-            transform: translateY(1px);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        @media (max-width: 480px) {
-            .home-btn {
-                padding: 8px 16px;
-                font-size: 0.85rem;
-                top: 5px;
-                right: 10px;
-            }
-        }
-
-        /* 保留加载状态 */
-        button.loading {
-            pointer-events: none;
-            opacity: 0.9;
         }
 
         button.loading::after {
@@ -114,7 +82,6 @@
             to { transform: rotate(360deg); }
         }
 
-        /* 以下原有样式保持不变 */
         h1 {
             margin-top: 50px;
             text-align: center;
@@ -127,7 +94,6 @@
             padding: 20px;
             margin: 15px 0;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            transition: transform 0.3s ease;
         }
 
         .method-section {
@@ -154,97 +120,129 @@
             transition: all 0.3s ease;
         }
 
-        /* 其余样式保持不变... */
+        input.error-shake {
+            animation: shake 0.4s;
+            border-color: var(--error-color);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .result-value {
+            font-size: 1.1rem;
+            margin: 10px 0;
+            color: var(--text-color);
+        }
+
+        @media (max-width: 768px) {
+            .method-section {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                padding: 0 20px;
+                font-size: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="/" class="home-btn">返回主页</a>
-        <h1>伏安法测电阻</h1>
+        <a href=" " class="home-btn">返回主页</a>
+        <h1>伏安法测电阻（五组数据版）</h1>
 
         <div class="method-section">
             <!-- 内接法 -->
             <div class="card">
-                <h3 class="method-title">内接法电表内阻</h3>
+                <h3>内接法电表内阻</h3>
                 <div class="input-group">
                     <input type="number" id="innerResistance" placeholder="电流表内阻 (Ω)" step="0.01" value="0">
                 </div>
                 
-                <h3 class="method-title">测量数据</h3>
+                <h3>测量数据（请填写5组）</h3>
                 <div id="innerDataInputs">
-                    <template id="innerDataTemplate">
-                        <div class="input-group">
-                            <input type="number" placeholder="电压 (V)" class="inner-voltage" step="0.01">
-                            <input type="number" placeholder="电流 (mA)" class="inner-current" step="0.01">
-                        </div>
-                    </template>
                     <div class="input-group">
-                        <input type="number" placeholder="电压1 (V)" class="inner-voltage" step="0.01">
-                        <input type="number" placeholder="电流1 (mA)" class="inner-current" step="0.01">
+                        <input type="number" placeholder="电压1 (V)" class="inner-voltage" step="0.01" required>
+                        <input type="number" placeholder="电流1 (mA)" class="inner-current" step="0.01" required>
                     </div>
                     <div class="input-group">
-                        <input type="number" placeholder="电压2 (V)" class="inner-voltage" step="0.01">
-                        <input type="number" placeholder="电流2 (mA)" class="inner-current" step="0.01">
+                        <input type="number" placeholder="电压2 (V)" class="inner-voltage" step="0.01" required>
+                        <input type="number" placeholder="电流2 (mA)" class="inner-current" step="0.01" required>
                     </div>
                     <div class="input-group">
-                        <input type="number" placeholder="电压3 (V)" class="inner-voltage" step="0.01">
-                        <input type="number" placeholder="电流3 (mA)" class="inner-current" step="0.01">
+                        <input type="number" placeholder="电压3 (V)" class="inner-voltage" step="0.01" required>
+                        <input type="number" placeholder="电流3 (mA)" class="inner-current" step="0.01" required>
                     </div>
                     <div class="input-group">
-                        <input type="number" placeholder="电压4 (V)" class="inner-voltage" step="0.01">
-                        <input type="number" placeholder="电流4 (mA)" class="inner-current" step="0.01">
+                        <input type="number" placeholder="电压4 (V)" class="inner-voltage" step="0.01" required>
+                        <input type="number" placeholder="电流4 (mA)" class="inner-current" step="0.01" required>
                     </div>
                     <div class="input-group">
-                        <input type="number" placeholder="电压5 (V)" class="inner-voltage" step="0.01">
-                        <input type="number" placeholder="电流5 (mA)" class="inner-current" step="0.01">
+                        <input type="number" placeholder="电压5 (V)" class="inner-voltage" step="0.01" required>
+                        <input type="number" placeholder="电流5 (mA)" class="inner-current" step="0.01" required>
                     </div>
                 </div>
             </div>
 
             <!-- 外接法 -->
             <div class="card">
-                <h3 class="method-title">外接法电表内阻</h3>
+                <h3>外接法电表内阻</h3>
                 <div class="input-group">
                     <input type="number" id="outerResistance" placeholder="电压表内阻 (Ω)" step="0.01" value="0">
                 </div>
                 
-                <h3 class="method-title">测量数据</h3>
+                <h3>测量数据（请填写5组）</h3>
                 <div id="outerDataInputs">
                     <div class="input-group">
-                        <input type="number" placeholder="电压1 (V)" class="outer-voltage" step="0.01">
-                        <input type="number" placeholder="电流1 (mA)" class="outer-current" step="0.01">
+                        <input type="number" placeholder="电压1 (V)" class="outer-voltage" step="0.01" required>
+                        <input type="number" placeholder="电流1 (mA)" class="outer-current" step="0.01" required>
                     </div>
                     <div class="input-group">
-                        <input type="number" placeholder="电压2 (V)" class="outer-voltage" step="0.01">
-                        <input type="number" placeholder="电流2 (mA)" class="outer-current" step="0.01">
+                        <input type="number" placeholder="电压2 (V)" class="outer-voltage" step="0.01" required>
+                        <input type="number" placeholder="电流2 (mA)" class="outer-current" step="0.01" required>
                     </div>
                     <div class="input-group">
-                        <input type="number" placeholder="电压3 (V)" class="outer-voltage" step="0.01">
-                        <input type="number" placeholder="电流3 (mA)" class="outer-current" step="0.01">
+                        <input type="number" placeholder="电压3 (V)" class="outer-voltage" step="0.01" required>
+                        <input type="number" placeholder="电流3 (mA)" class="outer-current" step="0.01" required>
                     </div>
                     <div class="input-group">
-                        <input type="number" placeholder="电压4 (V)" class="outer-voltage" step="0.01">
-                        <input type="number" placeholder="电流4 (mA)" class="outer-current" step="0.01">
+                        <input type="number" placeholder="电压4 (V)" class="outer-voltage" step="0.01" required>
+                        <input type="number" placeholder="电流4 (mA)" class="outer-current" step="0.01" required>
                     </div>
                     <div class="input-group">
-                        <input type="number" placeholder="电压5 (V)" class="outer-voltage" step="0.01">
-                        <input type="number" placeholder="电流5 (mA)" class="outer-current" step="0.01">
+                        <input type="number" placeholder="电压5 (V)" class="outer-voltage" step="0.01" required>
+                        <input type="number" placeholder="电流5 (mA)" class="outer-current" step="0.01" required>
                     </div>
                 </div>
             </div>
         </div>
 
-        <button onclick="calculateResistance()">开始计算</button>
-        </button>
+        <button id="calculateBtn" onclick="calculateResistance()">开始计算</button>
 
         <div class="card" id="detailedResult" style="display: none;">
             <h2>详细数据</h2>
             <div class="result-columns">
                 <div class="result-card">
-                    <h3 class="method-title">内接法数据</h3>
+                    <h3>内接法数据</h3>
                     <table>
                         <thead>
                             <tr>
+                                <th>组别</th>
                                 <th>电压(V)</th>
                                 <th>电流(mA)</th>
                                 <th>电阻(Ω)</th>
@@ -254,10 +252,11 @@
                     </table>
                 </div>
                 <div class="result-card">
-                    <h3 class="method-title">外接法数据</h3>
+                    <h3>外接法数据</h3>
                     <table>
                         <thead>
                             <tr>
+                                <th>组别</th>
                                 <th>电压(V)</th>
                                 <th>电流(mA)</th>
                                 <th>电阻(Ω)</th>
@@ -273,13 +272,15 @@
             <h2>最终结果</h2>
             <div class="result-columns">
                 <div class="result-card">
-                    <h3 class="method-title">内接法结果</h3>
+                    <h3>内接法结果</h3>
+                    <p class="result-value">原始平均值: <span id="innerAvg"></span> Ω</p>
                     <p class="result-value">修正后电阻: <span id="innerCorrected"></span> Ω</p>
                     <p class="result-value">A类不确定度: ±<span id="innerUncertainty"></span> Ω</p>
                     <p class="result-value">表达式: R = (<span id="innerExpression"></span>) Ω</p>
                 </div>
                 <div class="result-card">
-                    <h3 class="method-title">外接法结果</h3>
+                    <h3>外接法结果</h3>
+                    <p class="result-value">原始平均值: <span id="outerAvg"></span> Ω</p>
                     <p class="result-value">修正后电阻: <span id="outerCorrected"></span> Ω</p>
                     <p class="result-value">A类不确定度: ±<span id="outerUncertainty"></span> Ω</p>
                     <p class="result-value">表达式: R = (<span id="outerExpression"></span>) Ω</p>
@@ -292,83 +293,109 @@
         async function calculateResistance() {
             const btn = document.getElementById('calculateBtn');
             try {
-                // 按钮动效
                 btn.classList.add('loading');
                 btn.disabled = true;
-                document.querySelector('.btn-text').style.opacity = '0';
-                await new Promise(r => setTimeout(r, 800));
+                
+                // 数据验证函数（强制5组完整数据）
+                const validateData = (voltageClass, currentClass) => {
+                    const voltages = [];
+                    const currents = [];
+                    let hasError = false;
 
-                // 收集数据
-                const getValidData = (voltageClass, currentClass) => {
-                    const voltages = Array.from(document.getElementsByClassName(voltageClass))
-                        .map(i => parseFloat(i.value)).filter(v => !isNaN(v));
-                    const currents = Array.from(document.getElementsByClassName(currentClass))
-                        .map(i => parseFloat(i.value)).filter(v => !isNaN(v));
-                    
-                    // 验证数据
-                    if (voltages.length < 2 || currents.length < 2 || voltages.length !== currents.length) {
-                        const inputs = [...document.getElementsByClassName(voltageClass), 
-                                      ...document.getElementsByClassName(currentClass)];
-                        inputs.forEach(input => {
-                            if (!input.value) input.classList.add('error-shake');
-                        });
-                        setTimeout(() => {
-                            inputs.forEach(input => input.classList.remove('error-shake'));
-                        }, 400);
-                        throw new Error('请填写至少2组有效数据');
+                    // 验证每组数据
+                    for(let i = 1; i <= 5; i++) {
+                        const voltage = document.querySelector(`${voltageClass}[placeholder="电压${i} (V)"]`);
+                        const current = document.querySelector(`${currentClass}[placeholder="电流${i} (mA)"]`);
+
+                        const v = parseFloat(voltage.value);
+                        const c = parseFloat(current.value);
+
+                        if (isNaN(v) || isNaN(c)) {
+                            voltage.classList.add('error-shake');
+                            current.classList.add('error-shake');
+                            hasError = true;
+                        } else {
+                            voltage.classList.remove('error-shake');
+                            current.classList.remove('error-shake');
+                            voltages.push(v);
+                            currents.push(c);
+                        }
                     }
+
+                    if (hasError) throw new Error('请填写完整的5组数据');
+                    if (currents.some(c => c === 0)) throw new Error('电流值不能为零');
+                    
                     return { voltages, currents };
                 };
 
-                // 获取两种方法数据
-                const innerData = getValidData('inner-voltage', 'inner-current');
-                const outerData = getValidData('outer-voltage', 'outer-current');
+                // 获取数据
+                const innerData = validateData('.inner-voltage', '.inner-current');
+                const outerData = validateData('.outer-voltage', '.outer-current');
                 const R_inner = parseFloat(document.getElementById('innerResistance').value) || 0;
                 const R_outer = parseFloat(document.getElementById('outerResistance').value) || 0;
 
-                // 计算函数
+                // 计算函数（固定5组数据）
                 const calculateMethod = (data, R_meter, isInner) => {
-                    const resistances = data.voltages.map((v, i) => 
-                        v / (data.currents[i]/1000));
-                    const avg = resistances.reduce((a,b) => a + b, 0) / resistances.length;
-                    const stdDev = Math.sqrt(resistances.reduce((a,b) => 
-                        a + Math.pow(b - avg, 2), 0) / (resistances.length - 1));
-                    const uA = stdDev / Math.sqrt(resistances.length);
-                    
-                    const corrected = isInner ? 
-                        avg - R_meter : 
-                        (avg * R_meter) / (R_meter - avg) || avg;
+                    // 计算每组电阻
+                    const resistances = data.voltages.map((v, i) => {
+                        const currentA = data.currents[i] / 1000; // mA转A
+                        return v / currentA;
+                    });
 
-                    return { resistances, avg, uA, corrected };
+                    // 平均值计算
+                    const avg = resistances.reduce((sum, r) => sum + r, 0) / 5;
+                    
+                    // A类不确定度计算
+                    const stdDev = Math.sqrt(
+                        resistances.reduce((sum, r) => sum + Math.pow(r - avg, 2), 0) / 4
+                    );
+                    const uA = stdDev / Math.sqrt(5);
+
+                    // 电表修正
+                    let corrected = avg;
+                    if (isInner) {
+                        corrected = avg - R_meter;
+                    } else {
+                        if (R_outer !== 0) {
+                            corrected = (avg * R_meter) / (R_meter - avg);
+                        }
+                    }
+
+                    return {
+                        resistances,
+                        avg: Number(avg.toFixed(2)),
+                        uA: Number(uA.toFixed(2)),
+                        corrected: Number(corrected.toFixed(2))
+                    };
                 };
 
                 // 计算结果
                 const innerResult = calculateMethod(innerData, R_inner, true);
                 const outerResult = calculateMethod(outerData, R_outer, false);
 
-                // 更新显示
-                const formatData = (voltage, current, resistance, index) => `
-                    <tr>
-                        <td>${voltage.toFixed(2)}</td>
-                        <td>${current.toFixed(2)}</td>
-                        <td>${resistance[index].toFixed(1)}</td>
-                    </tr>
-                `;
+                // 更新表格
+                const fillTable = (tbodyId, data, result) => {
+                    const tbody = document.getElementById(tbodyId);
+                    tbody.innerHTML = data.voltages.map((v, i) => `
+                        <tr>
+                            <td>第${i+1}组</td>
+                            <td>${v.toFixed(2)}</td>
+                            <td>${data.currents[i].toFixed(2)}</td>
+                            <td>${result.resistances[i].toFixed(1)}</td>
+                        </tr>
+                    `).join('');
+                };
 
-                document.getElementById('innerDataTable').innerHTML = 
-                    innerData.voltages.map((v, i) => 
-                        formatData(v, innerData.currents[i], innerResult.resistances, i)).join('');
-                
-                document.getElementById('outerDataTable').innerHTML = 
-                    outerData.voltages.map((v, i) => 
-                        formatData(v, outerData.currents[i], outerResult.resistances, i)).join('');
+                fillTable('innerDataTable', innerData, innerResult);
+                fillTable('outerDataTable', outerData, outerResult);
 
-                // 更新最终结果
-                const setResult = (prefix, { corrected, uA }) => {
-                    document.getElementById(`${prefix}Corrected`).textContent = corrected.toFixed(1);
-                    document.getElementById(`${prefix}Uncertainty`).textContent = uA.toFixed(1);
+                // 显示最终结果
+                const setResult = (prefix, result) => {
+                    document.getElementById(`${prefix}Avg`).textContent = result.avg;
+                    document.getElementById(`${prefix}Corrected`).textContent = result.corrected;
+                    document.getElementById(`${prefix}Uncertainty`).textContent = result.uA;
                     document.getElementById(`${prefix}Expression`).textContent = 
-                        `${corrected.toFixed(1)} ± ${uA.toFixed(1)}`;
+                        `${result.corrected} ± ${result.uA}`;
                 };
 
                 setResult('inner', innerResult);
@@ -379,17 +406,14 @@
                 document.getElementById('finalResult').style.display = 'block';
 
             } catch (error) {
-                // 错误处理
-                btn.style.backgroundColor = var(--error-color);
+                btn.style.backgroundColor = 'var(--error-color)';
                 setTimeout(() => {
-                    btn.style.backgroundColor = var(--primary-color);
+                    btn.style.backgroundColor = 'var(--primary-color)';
                 }, 1000);
                 alert(error.message);
             } finally {
-                // 恢复按钮
                 btn.classList.remove('loading');
                 btn.disabled = false;
-                document.querySelector('.btn-text').style.opacity = '1';
             }
         }
     </script>
