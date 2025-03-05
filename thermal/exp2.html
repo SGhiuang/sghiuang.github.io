@@ -1,382 +1,394 @@
-
-
 <!DOCTYPE html>
 
 <html lang="zh-CN">
 
 <head>
 
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<title>实验二：金属比热容测量</title>
+    <title>实验二：金属比热容测量</title>
 
-<style>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        :root {
 
-:root {
+            --primary-color: #3498db;
 
---primary-color: #3498db;
+            --text-color: #2c3e50;
 
---text-color: #2c3e50;
+        }
 
-}
+        body {
 
-body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 
-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
 
-margin: 0;
+            padding: 15px;
 
-padding: 15px;
+            background-color: #f5f7f9;
 
-background-color: #f5f7f9;
+        }
 
-}
+        .container {
 
-.container {
+            max-width: 800px;
 
-max-width: 800px;
+            margin: 0 auto;
 
-margin: 0 auto;
+            position: relative;
 
-position: relative;
+        }
 
-}
+        /* 新增返回按钮样式 */
 
-/* 新增返回按钮样式 */
+        .home-btn {
 
-.home-btn {
+            position: absolute;
 
-position: absolute;
+            top: 10px;
 
-top: 10px;
+            right: 15px;
 
-right: 15px;
+            padding: 10px 20px;
 
-padding: 10px 20px;
+            background-color: var(--primary-color);
 
-background-color: var(--primary-color);
+            color: white;
 
-color: white;
+            border: none;
 
-border: none;
+            border-radius: 8px;
 
-border-radius: 8px;
+            font-size: 0.95rem;
 
-font-size: 0.95rem;
+            font-weight: 500;
 
-font-weight: 500;
+            text-decoration: none;
 
-text-decoration: none;
+            transition: all 0.3s ease;
 
-transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 
-box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
 
-cursor: pointer;
+            z-index: 10;
 
-z-index: 10;
+        }
 
-}
+        @media (max-width: 480px) {
 
-@media (max-width: 480px) {
+            .home-btn {
 
-.home-btn {
+                padding: 8px 16px;
 
-padding: 8px 16px;
+                font-size: 0.85rem;
 
-font-size: 0.85rem;
+                top: 5px;
 
-top: 5px;
+                right: 10px;
 
-right: 10px;
+            }
 
-}
+        }
 
-}
+        .home-btn:hover {
 
-.home-btn:hover {
+            transform: translateY(-1px);
 
-transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 
-box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background-color: #2980b9;
 
-background-color: #2980b9;
+        }
 
-}
+        .home-btn:active {
 
-.home-btn:active {
+            transform: translateY(1px);
 
-transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
-box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
 
-}
+        h1 {
 
-h1 {
+            margin-top: 40px;
 
-margin-top: 40px;
+            text-align: center;
 
-text-align: center;
+            padding: 0 60px;
 
-padding: 0 60px;
+        }
 
-}
+        .card {
 
-.card {
+            background: white;
 
-background: white;
+            border-radius: 10px;
 
-border-radius: 10px;
+            padding: 15px;
 
-padding: 15px;
+            margin: 15px 0;
 
-margin: 15px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 
-box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
 
-}
+        .input-group {
 
-.input-group {
+            margin: 10px 0;
 
-margin: 10px 0;
+        }
 
-}
+        input {
 
-input {
+            box-sizing: border-box;
 
-box-sizing: border-box;
+            width: calc(100% - 20px);
 
-width: calc(100% - 20px);
+            padding: 10px;
 
-padding: 10px;
+            border: 2px solid #e0e0e0;
 
-border: 2px solid #e0e0e0;
+            border-radius: 8px;
 
-border-radius: 8px;
+            font-size: 1rem;
 
-font-size: 1rem;
+            margin: 8px 10px;
 
-margin: 8px 10px;
+        }
 
-}
+        button {
 
-button {
+            width: 100%;
 
-width: 100%;
+            padding: 12px 24px;
 
-padding: 12px 24px;
+            margin: 20px 0;
 
-margin: 20px 0;
+            background-color: var(--primary-color);
 
-background-color: var(--primary-color);
+            color: white;
 
-color: white;
+            border: none;
 
-border: none;
+            border-radius: 8px;
 
-border-radius: 8px;
+            font-size: 1rem;
 
-font-size: 1rem;
+            font-weight: 500;
 
-font-weight: 500;
+            transition: all 0.3s ease;
 
-transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 
-box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
 
-cursor: pointer;
+        }
 
-}
+        button:hover {
 
-button:hover {
+            transform: translateY(-1px);
 
-transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 
-box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background-color: #2980b9;
 
-background-color: #2980b9;
+        }
 
-}
+        button:active {
 
-button:active {
+            transform: translateY(1px);
 
-transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
-box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
 
-}
+        table {
 
-table {
+            width: 100%;
 
-width: 100%;
+            border-collapse: collapse;
 
-border-collapse: collapse;
+            margin: 20px 0;
 
-margin: 20px 0;
+        }
 
-}
+        td,
+        th {
 
-td, th {
+            border: 1px solid #ddd;
 
-border: 1px solid #ddd;
+            padding: 10px;
 
-padding: 10px;
+            text-align: center;
 
-text-align: center;
-
-}
-
-</style>
+        }
+        .watermark {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.1;
+            background-image: url("data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><text x='50%' y='50%' transform='rotate(-35 150 150)' font-size='28' fill='%23000000' dominant-baseline='middle' text-anchor='middle'>Powered by Sghiuang</text></svg>");
+            background-repeat: repeat;
+        }
+    </style>
 
 </head>
 
 <body>
 
-<div class="container">
+    <div class="container">
 
-<a href=" " class="home-btn">返回主页</a >
+        <div class="watermark"></div>
+        
+        <a href=" " class="home-btn">返回主页</a>
 
-<h1>金属比热容测量</h1>
+        <h1>金属比热容测量</h1>
 
-<div class="card">
+        <div class="card">
 
-<h2>铜样品数据</h2>
+            <h2>铜样品数据</h2>
 
-<div class="input-group">
+            <div class="input-group">
 
-<input type="number" id="cuMass" placeholder="铜样品质量 (g)" step="0.01">
+                <input type="number" id="cuMass" placeholder="铜样品质量 (g)" step="0.01">
 
-</div>
+            </div>
 
-<div class="input-group">
+            <div class="input-group">
 
-<input type="number" id="cuTime" placeholder="冷却时间 (s)" step="0.1">
+                <input type="number" id="cuTime" placeholder="冷却时间 (s)" step="0.1">
 
-</div>
+            </div>
 
-</div>
+        </div>
 
-<div class="card">
+        <div class="card">
 
-<h2>铁样品数据</h2>
+            <h2>铁样品数据</h2>
 
-<div class="input-group">
+            <div class="input-group">
 
-<input type="number" id="feMass" placeholder="铁样品质量 (g)" step="0.01">
+                <input type="number" id="feMass" placeholder="铁样品质量 (g)" step="0.01">
 
-</div>
+            </div>
 
-<div class="input-group">
+            <div class="input-group">
 
-<input type="number" id="feTime" placeholder="冷却时间 (s)" step="0.1">
+                <input type="number" id="feTime" placeholder="冷却时间 (s)" step="0.1">
 
-</div>
+            </div>
 
-</div>
+        </div>
 
-<div class="card">
+        <div class="card">
 
-<h2>铝样品数据</h2>
+            <h2>铝样品数据</h2>
 
-<div class="input-group">
+            <div class="input-group">
 
-<input type="number" id="alMass" placeholder="铝样品质量 (g)" step="0.01">
+                <input type="number" id="alMass" placeholder="铝样品质量 (g)" step="0.01">
 
-</div>
+            </div>
 
-<div class="input-group">
+            <div class="input-group">
 
-<input type="number" id="alTime" placeholder="冷却时间 (s)" step="0.1">
+                <input type="number" id="alTime" placeholder="冷却时间 (s)" step="0.1">
 
-</div>
+            </div>
 
-</div>
+        </div>
 
-<button onclick="calculateExperiment2()">开始计算</button>
+        <button onclick="calculateExperiment2()">开始计算</button>
 
-<div class="card">
+        <div class="card">
 
-<h2>实验结果</h2>
+            <h2>实验结果</h2>
 
-<table>
+            <table>
 
-<thead>
+                <thead>
 
-<tr>
+                    <tr>
 
-<th>金属</th>
+                        <th>金属</th>
 
-<th>质量 (g)</th>
+                        <th>质量 (g)</th>
 
-<th>时间 (s)</th>
+                        <th>时间 (s)</th>
 
-<th>比热容</th>
+                        <th>比热容</th>
 
-<th>标准值</th>
+                        <th>标准值</th>
 
-<th>误差 (%)</th>
+                        <th>误差 (%)</th>
 
-</tr>
+                    </tr>
 
-</thead>
+                </thead>
 
-<tbody id="resultBody"></tbody>
+                <tbody id="resultBody"></tbody>
 
-</table>
+            </table>
 
-</div>
+        </div>
 
-</div>
+    </div>
 
-<script>
+    <script>
 
-function calculateExperiment2() {
+        function calculateExperiment2() {
 
-// 获取输入数据
+            // 获取输入数据
 
-const inputs = {
+            const inputs = {
 
-cuMass: parseFloat(document.getElementById('cuMass').value),
+                cuMass: parseFloat(document.getElementById('cuMass').value),
 
-cuTime: parseFloat(document.getElementById('cuTime').value),
+                cuTime: parseFloat(document.getElementById('cuTime').value),
 
-feMass: parseFloat(document.getElementById('feMass').value),
+                feMass: parseFloat(document.getElementById('feMass').value),
 
-feTime: parseFloat(document.getElementById('feTime').value),
+                feTime: parseFloat(document.getElementById('feTime').value),
 
-alMass: parseFloat(document.getElementById('alMass').value),
+                alMass: parseFloat(document.getElementById('alMass').value),
 
-alTime: parseFloat(document.getElementById('alTime').value)
+                alTime: parseFloat(document.getElementById('alTime').value)
 
-};
+            };
 
-// 数据验证
+            // 数据验证
 
-if (Object.values(inputs).some(v => isNaN(v) || v <= 0)) {
+            if (Object.values(inputs).some(v => isNaN(v) || v <= 0)) {
 
-alert("请填写所有有效数据");
+                alert("请填写所有有效数据");
 
-return;
+                return;
 
-}
+            }
 
-// 计算比热容
+            // 计算比热容
 
-const C_Cu = 0.0940;
+            const C_Cu = 0.0940;
 
-const STANDARD = { Fe: 0.110, Al: 0.230 };
+            const STANDARD = { Fe: 0.110, Al: 0.230 };
 
-const C_Fe = C_Cu * (inputs.cuMass * inputs.feTime) / (inputs.feMass * inputs.cuTime);
+            const C_Fe = C_Cu * (inputs.cuMass * inputs.feTime) / (inputs.feMass * inputs.cuTime);
 
-const C_Al = C_Cu * (inputs.cuMass * inputs.alTime) / (inputs.alMass * inputs.cuTime);
+            const C_Al = C_Cu * (inputs.cuMass * inputs.alTime) / (inputs.alMass * inputs.cuTime);
 
-// 生成结果
+            // 生成结果
 
-const tbody = document.getElementById('resultBody');
+            const tbody = document.getElementById('resultBody');
 
-tbody.innerHTML = `
+            tbody.innerHTML = `
 
 <tr>
 
@@ -406,7 +418,7 @@ tbody.innerHTML = `
 
 <td>${STANDARD.Fe.toFixed(3)}</td>
 
-<td>${Math.abs((C_Fe - STANDARD.Fe)/STANDARD.Fe * 100).toFixed(1)}%</td>
+<td>${Math.abs((C_Fe - STANDARD.Fe) / STANDARD.Fe * 100).toFixed(1)}%</td>
 
 </tr>
 
@@ -422,15 +434,72 @@ tbody.innerHTML = `
 
 <td>${STANDARD.Al.toFixed(3)}</td>
 
-<td>${Math.abs((C_Al - STANDARD.Al)/STANDARD.Al * 100).toFixed(1)}%</td>
+<td>${Math.abs((C_Al - STANDARD.Al) / STANDARD.Al * 100).toFixed(1)}%</td>
 
 </tr>
 
 `;
+let exportBtn = document.getElementById('exportBtn');
+            if (!exportBtn) {
+                exportBtn = document.createElement('button');
+                exportBtn.id = 'exportBtn';
+                exportBtn.textContent = '导出实验报告';
+                exportBtn.style.marginTop = '20px';
+                exportBtn.onclick = exportReport;
+                document.querySelector('.container').appendChild(exportBtn);
+            }
+        }
+        async function exportReport() {
+            const btn = document.getElementById('exportBtn');
+            try {
+                btn.classList.add('loading');
+                btn.disabled = true;
+                
+                // 截图配置
+                const element = document.querySelector('.container');
+                const canvas = await html2canvas(element, {
+                    useCORS: true,
+                    scale: 2,
+                    logging: false,
+                    scrollX: 0,
+                    scrollY: 0,
+                    windowWidth: document.documentElement.scrollWidth,
+                    windowHeight: document.documentElement.scrollHeight
+                });
 
-}
+                // 添加动态水印
+                const ctx = canvas.getContext('2d');
+                ctx.save();
+                ctx.font = '28px Microsoft YaHei';
+                ctx.fillStyle = 'rgba(0,0,0,0.12)';
+                ctx.translate(canvas.width/2, canvas.height/2);
+                ctx.rotate(-35 * Math.PI / 180);
+                
+                // 平铺水印文字
+                const watermarkText = 'Powered by SGhiuang';
+                const textWidth = ctx.measureText(watermarkText).width;
+                for(let x = -canvas.width*1.5; x < canvas.width*1.5; x += 350) {
+                    for(let y = -canvas.height*1.5; y < canvas.height*1.5; y += 180) {
+                        ctx.fillText(watermarkText, x, y);
+                    }
+                }
+                ctx.restore();
 
-</script>
+                // 创建下载链接
+                const link = document.createElement('a');
+                link.download = `比热容实验报告_${new Date().toLocaleString().replace(/[/:]/g,'-')}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+
+            } catch (error) {
+                alert('导出失败: ' + error.message);
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        }
+
+    </script>
 
 </body>
 

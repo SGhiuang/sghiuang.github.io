@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>实验一：伏安法测电阻</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         :root {
             --primary-color: #3498db;
@@ -159,6 +160,18 @@
                 font-size: 1.5rem;
             }
         }
+        .watermark {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.1;
+            background-image: url("data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><text x='50%' y='50%' transform='rotate(-45, 100 100)' font-size='25' fill='%23000000' dominant-baseline='middle' text-anchor='middle'>Powered by SGhiuang</text></svg>");
+            background-repeat: repeat;
+        }
     </style>
 </head>
 <body>
@@ -288,6 +301,7 @@
             </div>
         </div>
     </div>
+    <div class="watermark"></div>
 
     <script>
         async function calculateResistance() {
@@ -415,7 +429,65 @@
                 btn.classList.remove('loading');
                 btn.disabled = false;
             }
+            let exportBtn = document.getElementById('exportBtn');
+            if (!exportBtn) {
+                exportBtn = document.createElement('button');
+                exportBtn.id = 'exportBtn';
+                exportBtn.textContent = '导出实验报告';
+                exportBtn.style.marginTop = '20px';
+                exportBtn.onclick = exportReport;
+                // 将按钮插入到最终结果卡片之后
+                document.getElementById('finalResult').insertAdjacentElement('afterend', exportBtn);
+            }
+        }
+        async function exportReport() {
+            const btn = document.getElementById('exportBtn');
+            try {
+                btn.classList.add('loading');
+                btn.disabled = true;
+                
+                // 1. 获取需要截图的容器
+                const element = document.querySelector('.container');
+                
+                // 2. 使用html2canvas截图
+                const canvas = await html2canvas(element, {
+                    useCORS: true,
+                    scale: 2,
+                    logging: false,
+                    scrollX: 0,
+                    scrollY: -window.scrollY
+                });
+
+                // 3. 添加动态水印
+                const ctx = canvas.getContext('2d');
+                ctx.save();
+                ctx.font = '25px Microsoft YaHei';
+                ctx.fillStyle = 'rgba(0,0,0,0.15)';
+                ctx.translate(canvas.width/2, canvas.height/2);
+                ctx.rotate(-45 * Math.PI / 180);
+                
+                // 平铺水印文字
+                for(let x = -canvas.width; x < canvas.width; x += 300) {
+                    for(let y = -canvas.height; y < canvas.height; y += 200) {
+                        ctx.fillText('Powered by SGhiuang', x, y);
+                    }
+                }
+                ctx.restore();
+
+                // 4. 创建下载链接
+                const link = document.createElement('a');
+                link.download = `实验报告_${new Date().toLocaleString().replace(/[/:]/g,'-')}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+
+            } catch (error) {
+                alert('导出失败: ' + error.message);
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
         }
     </script>
+    
 </body>
 </html>
