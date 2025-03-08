@@ -337,7 +337,7 @@
                 M: parseFloat(group.querySelector('.M').value)/1000 || 0
             }));
 
-            const Cw = 4187.0, C_Al = 900.2, m3C3 = 1796.0, L_theory = 2.25e6;
+            const Cw = 4187.0, C_Al = 900.2, m3C3 = 1.796, L_theory = 2.25e6;
             const results = experiments.map(exp => {
                 // 使用定标公式转换电压为温度
                 const θ1 = (exp.u1 - A) / B;
