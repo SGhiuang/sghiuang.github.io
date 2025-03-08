@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>实验三：板式电势差计测量</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --text-color: #2c3e50;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background-color: #f5f7f9;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .home-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .input-group {
+            margin: 10px 0;
+        }
+
+        input {
+            box-sizing: border-box;
+            width: calc(100% - 20px);
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin: 8px 10px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px 24px;
+            margin: 20px 0;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+        }
+
+        .watermark {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.1;
+            background-image: url("data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><text x='50%' y='50%' transform='rotate(-45, 100 100)' font-size='25' fill='%23000000' dominant-baseline='middle' text-anchor='middle'>Powered by SGhiuang</text></svg>");
+            background-repeat: repeat;
+        }
+
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+        }
+
+        button {
+
+            width: 100%;
+
+            padding: 12px 24px;
+
+            margin: 20px 0;
+
+            background-color: var(--primary-color);
+
+            color: white;
+
+            border: none;
+
+            border-radius: 8px;
+
+            font-size: 1rem;
+
+            font-weight: 500;
+
+            transition: all 0.3s ease;
+
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+
+            cursor: pointer;
+
+        }
+
+        button:hover {
+
+            transform: translateY(-1px);
+
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+            background-color: #2980b9;
+
+        }
+
+        button:active {
+
+            transform: translateY(1px);
+
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+        }
+
+        /* button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s ease, height 0.3s ease;
+        }
+
+        button:active::after {
+            width: 200px;
+            height: 200px;
+            opacity: 0;
+        } */
+        #results {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin: 15px 0;
+            white-space: pre-wrap;
+        }
+        sup {
+            font-size: 0.8em;
+            vertical-align: super;
+            margin-left: 1px;
+        }
+
+        /* 加载动画 */
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading::before {
+            content: '';
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: spin 0.8s linear infinite;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="/" class="home-btn">返回主页</a>
+        <h1 style="text-align: center;">板式电势差计测干电池参数</h1>
+
+        <div class="card">
+            <h2>温度参数</h2>
+            <div class="input-group">
+                <input type="number" id="temperature" placeholder="请输入室温T(摄氏度)" step="0.1">
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>长度测量</h2>
+            <div class="input-group">
+                <input type="number" id="lab" placeholder="测电动势时的lab长度(m)" step="0.001">
+                <input type="number" id="lab_prime" placeholder="测电动势时的lab'长度(m)" step="0.001">
+                <input type="number" id="lab_double_prime" placeholder="测内阻时的lab''长度(m)" step="0.001">
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>标准电阻</h2>
+            <div class="input-group">
+                <input type="number" id="rs" placeholder="标准电阻Rs值(Ω)" step="0.1" value="10">
+            </div>
+        </div>
+
+        <button onclick="calculate()">开始计算</button>
+
+        <div class="card">
+            <h2>计算结果</h2>
+            <pre id="results"></pre>
+        </div>
+
+        <button onclick="exportReport()" id="exportBtn">导出实验报告</button>
+    </div>
+    <div class="watermark"></div>
+
+    <script>
+        function calculate() {
+            // 获取输入值
+            const T = parseFloat(document.getElementById('temperature').value);
+            const lab = parseFloat(document.getElementById('lab').value);
+            const lab_prime = parseFloat(document.getElementById('lab_prime').value);
+            const lab_double_prime = parseFloat(document.getElementById('lab_double_prime').value);
+            const Rs = parseFloat(document.getElementById('rs').value) || 10; // 默认值10
+
+            // 标准电池计算
+            const delta_T = T - 20.0;
+            const Es_prime = (39.9 * delta_T + 0.94 * Math.pow(delta_T, 2) - 0.009 * Math.pow(delta_T, 3)) * 1e-6;
+            const Es_20 = 1.01866;
+            const Es = Es_20 - Es_prime;
+
+            // 电动势计算
+            const Ex = (lab_prime / lab) * Es;
+
+            // 内阻计算
+            const r = Rs * (lab_prime / lab_double_prime - 1);
+
+            // 构建结果输出
+            const output = `
+====================
+标准电池修正计算：
+温度修正量 Es' = ${formatScientific(Es_prime)} V
+修正后标准电池电动势 Es = ${Es.toFixed(6)} V
+
+电动势计算结果：
+待测电池电动势 Ex = ${Ex.toFixed(6)} V
+
+内阻计算结果：
+干电池内阻 r = ${r.toFixed(6)} Ω
+====================`;
+
+        document.getElementById('results').innerHTML = output
+                .replace(/\n/g, '<br>')
+                .replace(/ /g, '&nbsp;');
+        }
+
+        // 科学计数法格式化函数
+        function formatScientific(num) {
+            return num.toExponential(6)
+                .replace(/e([+-])(\d+)/, (match, sign, exp) => { // 修复正则表达式
+                    exp = exp.replace(/^0+/, ''); // 去除前导零
+                    return `×10<sup>${sign}${exp || '0'}</sup>`; // 处理空指数
+                })
+                .replace(/(\.\d*?[1-9])0+($|e)/, '$1'); // 精确去除尾部零
+        }
+
+        async function exportReport() {
+            const btn = document.getElementById('exportBtn');
+            try {
+                btn.classList.add('loading');
+                btn.disabled = true;
+                btn.textContent = '正在生成...';
+
+                // 截图配置
+                const element = document.querySelector('.container');
+                const canvas = await html2canvas(element, {
+                    useCORS: true,
+                    scale: 2,
+                    logging: false,
+                    scrollY: -window.scrollY
+                });
+
+                // 添加动态水印
+                const ctx = canvas.getContext('2d');
+                ctx.save();
+                ctx.font = '25px Microsoft YaHei';
+                ctx.fillStyle = 'rgba(0,0,0,0.15)';
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate(-45 * Math.PI / 180);
+
+                // 平铺水印文字
+                for (let x = -canvas.width; x < canvas.width * 2; x += 280) {
+                    for (let y = -canvas.height; y < canvas.height * 2; y += 180) {
+                        ctx.fillText('Powered by SGhiuang', x, y);
+                    }
+                }
+                ctx.restore();
+
+                // 创建下载链接
+                const link = document.createElement('a');
+                link.download = `电势差计实验报告_${new Date().toLocaleString().replace(/[/:]/g, '-')}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+
+            } catch (error) {
+                alert('导出失败: ' + error.message);
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                btn.textContent = '导出实验报告';
+            }
+        }
+    </script>
+</body>
+
+</html>
