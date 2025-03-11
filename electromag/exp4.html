@@ -3,14 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>实验四：电表校正</title>
+    <title>实验四：箱式电势差计校正电表</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* 保持原有样式不变 */
+        .chart-container {
+            margin: 20px 0;
+            position: relative;
+            height: 300px;
+        }
+        .home-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            padding: 8px 16px;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        .home-btn:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
         :root {
             --primary-color: #3498db;
             --text-color: #2c3e50;
-            --table-header: #f8f9fa;
+            --light-bg: #f8f9fa;
+            --border-color: #e0e0e0;
         }
 
         body {
@@ -42,7 +65,7 @@
         }
 
         input {
-            width: 100%;
+            width: 90%;
             padding: 12px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
@@ -70,13 +93,53 @@
         }
 
         .result-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        }
+
+        .result-table th {
+            background: var(--primary-color);
+            color: white;
+            padding: 14px 20px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 1.05rem;
+            letter-spacing: 0.8px;
+        }
+
+        .result-table td {
+            padding: 12px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.95rem;
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        .result-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .result-table tbody tr:nth-child(even) {
+            background-color: #f5f7f9;
+        }
+
+        .result-table td:first-child {
+            border-left: none;
+        }
+
+        .result-table td:last-child {
+            border-right: none;
+        }
+
+        .result-table tfoot td {
+            background: #f8f9fa;
+            font-weight: 600;
         }
 
         .watermark {
@@ -97,6 +160,7 @@
             color: #666;
             margin-bottom: 5px;
         }
+        
     </style>
 </head>
 <body>
@@ -114,7 +178,7 @@
                 </div>
                 <div>
                     <div class="input-label">Ix预设值（μA，逗号分隔）</div>
-                    <input type="text" id="ix-preset" value="0,10,20,30,40,50">
+                    <input type="text" id="ix-preset" value="10,20,30,40,50">
                 </div>
             </div>
             
@@ -138,7 +202,7 @@
                 </div>
                 <div>
                     <div class="input-label">Ux预设值（V，逗号分隔）</div>
-                    <input type="text" id="ux-preset" value="0,0.5,1.0,1.5,2.0,2.5,3.0">
+                    <input type="text" id="ux-preset" value="0.5,1.0,1.5,2.0,2.5,3.0">
                 </div>
             </div>
             
@@ -152,6 +216,12 @@
 
         <div class="card">
             <h2>计算结果</h2>
+            <div class="chart-container">
+                <canvas id="currentChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="voltageChart"></canvas>
+            </div>
             <div id="results"></div>
         </div>
 
@@ -160,6 +230,10 @@
     <div class="watermark"></div>
 
     <script>
+        // 全局定义图表变量
+        let currentChart;
+        let voltageChart;
+
         // 初始化输入框
         function initInputs() {
             // 电流表
@@ -185,6 +259,8 @@
 
         // 计算函数
         function calculate() {
+            if(currentChart) currentChart.destroy();
+            if(voltageChart) voltageChart.destroy();
             // 获取电流表数据
             const ixValues = document.getElementById('ix-preset').value.split(',').map(Number);
             const rCurrent = parseFloat(document.getElementById('r_current').value) || 10000;
@@ -225,6 +301,48 @@
             </table>`;
 
             document.getElementById('results').innerHTML = resultsHTML;
+
+            currentChart = new Chart(document.getElementById('currentChart'), {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'ΔIx误差曲线',
+                        data: ixValues.map((ix, i) => ({
+                            x: ix,
+                            y: (ix - (urCurrent[i]/1000 / rCurrent * 1e6)).toFixed(2)
+                        })),
+                        borderColor: '#e74c3c',
+                        backgroundColor: '#e74c3c55'
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: { title: { display: true, text: 'Ix (μA)' }},
+                        y: { title: { display: true, text: 'ΔIx (μA)' }}
+                    }
+                }
+            });
+
+            voltageChart = new Chart(document.getElementById('voltageChart'), {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'ΔUx误差曲线',
+                        data: uxValues.map((ux, i) => ({
+                            x: ux,
+                            y: (ux - (r2/r1 * urVoltage[i]/1000)).toFixed(3)
+                        })),
+                        borderColor: '#2ecc71',
+                        backgroundColor: '#2ecc7155'
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: { title: { display: true, text: 'Ux (V)' }},
+                        y: { title: { display: true, text: 'ΔUx (V)' }}
+                    }
+                }
+            });
         }
 
         // 导出报告
@@ -239,6 +357,21 @@
                     scale: 2,
                     logging: true
                 });
+            
+                const ctx = canvas.getContext('2d');
+                ctx.save();
+                ctx.font = '25px Microsoft YaHei';
+                ctx.fillStyle = 'rgba(0,0,0,0.15)';
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate(-45 * Math.PI / 180);
+
+                // 平铺水印文字
+                for (let x = -canvas.width; x < canvas.width * 2; x += 280) {
+                    for (let y = -canvas.height; y < canvas.height * 2; y += 180) {
+                        ctx.fillText('Powered by SGhiuang', x, y);
+                    }
+                }
+                ctx.restore();
 
                 const link = document.createElement('a');
                 link.download = `电表校准报告_${new Date().toISOString().slice(0,10)}.png`;
