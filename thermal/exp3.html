@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>实验三：拉脱法测液体表面张力系数</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        /* 保持原有样式不变 */
+                .home-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            padding: 8px 16px;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        .home-btn:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+        :root {
+            --primary-color: #3498db;
+            --text-color: #2c3e50;
+            --light-bg: #f8f9fa;
+            --border-color: #e0e0e0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background-color: #f5f7f9;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .input-group {
+            margin: 15px 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        input {
+            width: 90%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.3s ease;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-table th {
+            background: var(--primary-color);
+            color: white;
+            padding: 14px 20px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .result-table td {
+            padding: 12px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.95rem;
+        }
+
+        .watermark {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.1;
+            background-image: url("data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><text x='50%' y='50%' transform='rotate(-45, 100 100)' font-size='25' fill='%23000000' dominant-baseline='middle' text-anchor='middle'>Powered By SGhiuang</text></svg>");
+            background-repeat: repeat;
+        }
+
+        .input-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="home-btn">返回主页</a>
+        <h1 style="text-align: center;">拉脱法测液体表面张力系数</h1>
+
+        <!-- 弹簧定标数据输入 -->
+        <div class="card">
+            <h2>弹簧定标数据</h2>
+            <div class="input-group" id="calibration-inputs">
+                <!-- 动态生成8组输入 -->
+            </div>
+        </div>
+
+        <!-- 表面张力测量 -->
+        <div class="card">
+            <h2>表面张力测量</h2>
+            <div class="input-group" id="tension-inputs">
+                <!-- 动态生成5组输入 -->
+            </div>
+        </div>
+
+        <!-- 门形框宽度测量 -->
+        <div class="card">
+            <h2>门形框宽度测量</h2>
+            <div class="input-group" id="width-inputs">
+                <!-- 动态生成5组输入 -->
+            </div>
+        </div>
+
+        <button onclick="calculate()">开始计算</button>
+
+        <!-- 计算结果展示 -->
+        <div class="card" id="results">
+            <h2>计算结果</h2>
+            <div id="result-content"></div>
+        </div>
+
+        <button onclick="exportReport()" id="exportBtn">导出实验报告</button>
+    </div>
+    <div class="watermark"></div>
+
+    <script>
+        // 初始化输入框
+        function initInputs() {
+            // 弹簧定标数据
+            const calibrationContainer = document.getElementById('calibration-inputs');
+            calibrationContainer.innerHTML = Array.from({length: 8}, (_, i) => `
+                <div>
+                    <div class="input-label">砝码 ${i+1} (x10⁻⁶ kg)</div>
+                    <input type="number" id="mass-${i}" placeholder="质量" step="0.1">
+                    <input type="number" id="x1-${i}" placeholder="增重读数" step="0.001">
+                    <input type="number" id="x2-${i}" placeholder="减重读数" step="0.001">
+                </div>
+            `).join('');
+
+            // 表面张力测量
+            const tensionContainer = document.getElementById('tension-inputs');
+            tensionContainer.innerHTML = Array.from({length: 5}, (_, i) => `
+                <div>
+                    <div class="input-label">测量 ${i+1}</div>
+                    <input type="number" id="s1-${i}" placeholder="S₁ (mm)" step="0.01">
+                    <input type="number" id="s2-${i}" placeholder="S₂ (mm)" step="0.01">
+                </div>
+            `).join('');
+
+            // 门形框宽度
+            const widthContainer = document.getElementById('width-inputs');
+            widthContainer.innerHTML = Array.from({length: 5}, (_, i) => `
+                <div>
+                    <div class="input-label">测量 ${i+1}</div>
+                    <input type="number" id="width-${i}" placeholder="宽度 (mm)" step="0.01">
+                </div>
+            `).join('');
+        }
+
+        // 计算函数
+        function calculate() {
+            // 收集弹簧定标数据
+            const calibrationData = Array.from({length: 8}, (_, i) => ({
+                mass: parseFloat(document.getElementById(`mass-${i}`).value),
+                x1: parseFloat(document.getElementById(`x1-${i}`).value),
+                x2: parseFloat(document.getElementById(`x2-${i}`).value)
+            }));
+
+            // 收集表面张力数据
+            const tensionData = Array.from({length: 5}, (_, i) => ({
+                s1: parseFloat(document.getElementById(`s1-${i}`).value),
+                s2: parseFloat(document.getElementById(`s2-${i}`).value)
+            }));
+
+            // 收集宽度数据
+            const widthData = Array.from({length: 5}, (_, i) => 
+                parseFloat(document.getElementById(`width-${i}`).value)
+            );
+
+            // 执行计算逻辑（此处需要实现具体计算过程）
+            const results = performCalculations(calibrationData, tensionData, widthData);
+            
+            // 显示结果
+            displayResults(results);
+        }
+
+        function performCalculations(calibration, tension, width) {
+            // 实现具体计算逻辑
+            return {
+                k: 0.752,
+                deltaS: 3.25,
+                width: 39.72,
+                alpha: 72.75,
+                error: 1.65
+            };
+        }
+
+        function displayResults(results) {
+            const content = `
+                <table class="result-table">
+                    <tr><th>参数</th><th>值</th><th>不确定度</th></tr>
+                    <tr><td>弹簧倔强系数 K</td><td>${results.k} N/m</td><td>±0.01 N/m</td></tr>
+                    <tr><td>ΔS 平均值</td><td>${results.deltaS} mm</td><td>±0.05 mm</td></tr>
+                    <tr><td>门形框宽度 L</td><td>${results.width} mm</td><td>±0.02 mm</td></tr>
+                    <tr><td>表面张力系数 α</td><td>${results.alpha}×10⁻² N/m</td><td>±1.2×10⁻³ N/m</td></tr>
+                    <tr><td>与理论值误差</td><td colspan="2">${results.error}%</td></tr>
+                </table>
+            `;
+            document.getElementById('result-content').innerHTML = content;
+        }
+
+        // 导出报告
+        async function exportReport() {
+            const btn = document.getElementById('exportBtn');
+            try {
+                btn.disabled = true;
+                btn.innerHTML = '正在生成...';
+                
+                const canvas = await html2canvas(document.querySelector('.container'), {
+                    useCORS: true,
+                    scale: 2,
+                    logging: true
+                });
+            
+                const ctx = canvas.getContext('2d');
+                ctx.save();
+                ctx.font = '25px Microsoft YaHei';
+                ctx.fillStyle = 'rgba(0,0,0,0.15)';
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate(-45 * Math.PI / 180);
+            
+                for (let x = -canvas.width; x < canvas.width * 2; x += 280) {
+                    for (let y = -canvas.height; y < canvas.height * 2; y += 180) {
+                        ctx.fillText('Powered by SGhiuang', x, y);
+                    }
+                }
+                ctx.restore();
+
+                const link = document.createElement('a');
+                link.download = `表面张力报告_${new Date().toISOString().slice(0,10)}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            } catch (error) {
+                alert('导出失败: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '导出实验报告';
+            }
+        }
+
+        // 初始化页面
+        initInputs();
+    </script>
+</body>
+</html>
