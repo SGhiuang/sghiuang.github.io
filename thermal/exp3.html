@@ -284,6 +284,33 @@
             return Math.sqrt(arr.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / (arr.length - 1)) || 0;
         }
 
+        function calculate() {
+        // 收集弹簧定标数据
+        const calibrationData = Array.from({length: 8}, (_, i) => ({
+            mass: parseFloat(document.getElementById(`mass-${i}`).value),
+            x1: parseFloat(document.getElementById(`x1-${i}`).value),
+            x2: parseFloat(document.getElementById(`x2-${i}`).value)
+        }));
+
+        // 收集表面张力数据
+        const tensionData = Array.from({length: 5}, (_, i) => ({
+            s1: parseFloat(document.getElementById(`s1-${i}`).value),
+            s2: parseFloat(document.getElementById(`s2-${i}`).value)
+        }));
+
+        // 收集宽度数据
+        const widthData = Array.from({length: 5}, (_, i) => 
+            parseFloat(document.getElementById(`width-${i}`).value)
+        );
+
+        // 执行计算逻辑
+        const results = performCalculations(calibrationData, tensionData, widthData);
+        
+        // 显示结果
+        displayResults(results);
+    }
+
+
         // 结果显示
         function displayResults(results) {
             const content = `
