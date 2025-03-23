@@ -207,27 +207,55 @@
 
         // 核心计算逻辑（带单位转换）
         function performCalculations(calibration, tension, width) {
-            // 单位转换常数
-            const g = 9.8;  // 重力加速度 m/s²
-            const cmToM = 0.01;
-            const gToKg = 0.001;
+    // 单位转换常数
+    const g = 9.8;  // m/s²
+    const cmToM = 0.01;
+    const gToKg = 0.001;
 
-            // 1. 计算弹簧倔强系数K
-            const validCalibration = calibration.filter(p => 
-                !isNaN(p.mass) && !isNaN(p.x1) && !isNaN(p.x2) && p.mass > 0
-            );
-            
-            let sumFx = 0, sumX2 = 0;
-            validCalibration.forEach(p => {
-                const F = p.mass * gToKg * g;  // g → kg → N
-                const x = ((p.x1 + p.x2) / 2) * cmToM;  // cm → m
-                sumFx += F * x;
-                sumX2 += x * x;
-            });
-            
-            const K = sumFx / (sumX2 || 1); // 防止除以零
-            const uK = validCalibration.length > 1 ? 
-                Math.sqrt((sumFx - K * sumX2) / (validCalibration.length - 1)) / Math.sqrt(sumX2) : 0;
+    /* 1. 重新计算弹簧倔强系数K */
+    // 按质量排序数据
+    const sortedCalibration = calibration.slice().sort((a, b) => a.mass - b.mass);
+    
+    // 计算每个砝码对应的净伸长量（需考虑累计质量）
+    let previousMass = 0;
+    let previousPosition = sortedCalibration[0] ? 
+        (sortedCalibration[0].x1 + sortedCalibration[0].x2)/2 : 0;
+
+    const validPoints = sortedCalibration.map((p, i) => {
+        if(i === 0) return null; // 第一组数据作为基准
+        
+        const currentPosition = (p.x1 + p.x2)/2;
+        const deltaMass = p.mass - previousMass;
+        const deltaX = (currentPosition - previousPosition) * cmToM; // 转换为米
+        
+        previousMass = p.mass;
+        previousPosition = currentPosition;
+        
+        return {
+            F: deltaMass * gToKg * g, // 力增量（牛）
+            x: deltaX                 // 位移增量（米）
+        };
+    }).filter(p => p !== null);
+
+    // 最小二乘法计算K
+    let sumFx = 0, sumX2 = 0;
+    validPoints.forEach(p => {
+        sumFx += p.F * p.x;
+        sumX2 += p.x * p.x;
+    });
+    
+    const K = sumFx / sumX2;
+    
+    // 计算标准不确定度
+    let sumResiduals = 0;
+    validPoints.forEach(p => {
+        const residual = p.F - K * p.x;
+        sumResiduals += residual * residual;
+    });
+    
+    const uK = validPoints.length > 1 ?
+        Math.sqrt(sumResiduals / (validPoints.length - 1)) / Math.sqrt(sumX2) :
+        0;
 
             // 2. 计算ΔS
             const validTension = tension.filter(t => !isNaN(t.s1) && !isNaN(t.s2));
