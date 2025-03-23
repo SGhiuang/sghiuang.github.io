@@ -137,7 +137,7 @@
 
         <!-- 弹簧定标数据输入 -->
         <div class="card">
-            <h2>弹簧定标数据</h2>
+            <h2>弹簧定标数据（质量：g，长度：cm）</h2>
             <div class="input-group" id="calibration-inputs">
                 <!-- 动态生成8组输入 -->
             </div>
@@ -145,7 +145,7 @@
 
         <!-- 表面张力测量 -->
         <div class="card">
-            <h2>表面张力测量</h2>
+            <h2>表面张力测量（单位：cm）</h2>
             <div class="input-group" id="tension-inputs">
                 <!-- 动态生成5组输入 -->
             </div>
@@ -153,7 +153,7 @@
 
         <!-- 门形框宽度测量 -->
         <div class="card">
-            <h2>门形框宽度测量</h2>
+            <h2>门形框宽度测量（单位：cm）</h2>
             <div class="input-group" id="width-inputs">
                 <!-- 动态生成5组输入 -->
             </div>
@@ -163,7 +163,7 @@
 
         <!-- 计算结果展示 -->
         <div class="card" id="results">
-            <h2>计算结果</h2>
+            <h2>计算结果（表面张力系数：N/m）</h2>
             <div id="result-content"></div>
         </div>
 
@@ -172,16 +172,16 @@
     <div class="watermark"></div>
 
     <script>
-        // 初始化输入框
+        // 初始化输入框（修改单位提示）
         function initInputs() {
             // 弹簧定标数据
             const calibrationContainer = document.getElementById('calibration-inputs');
             calibrationContainer.innerHTML = Array.from({length: 8}, (_, i) => `
                 <div>
-                    <div class="input-label">砝码 ${i+1} (x10⁻⁶ kg)</div>
-                    <input type="number" id="mass-${i}" placeholder="质量" step="0.1">
-                    <input type="number" id="x1-${i}" placeholder="增重读数" step="0.001">
-                    <input type="number" id="x2-${i}" placeholder="减重读数" step="0.001">
+                    <div class="input-label">砝码 ${i+1}</div>
+                    <input type="number" id="mass-${i}" placeholder="质量 (g)" step="0.1">
+                    <input type="number" id="x1-${i}" placeholder="增重读数 (cm)" step="0.01">
+                    <input type="number" id="x2-${i}" placeholder="减重读数 (cm)" step="0.01">
                 </div>
             `).join('');
 
@@ -190,8 +190,8 @@
             tensionContainer.innerHTML = Array.from({length: 5}, (_, i) => `
                 <div>
                     <div class="input-label">测量 ${i+1}</div>
-                    <input type="number" id="s1-${i}" placeholder="S₁ (mm)" step="0.01">
-                    <input type="number" id="s2-${i}" placeholder="S₂ (mm)" step="0.01">
+                    <input type="number" id="s1-${i}" placeholder="S₁ (cm)" step="0.01">
+                    <input type="number" id="s2-${i}" placeholder="S₂ (cm)" step="0.01">
                 </div>
             `).join('');
 
@@ -200,59 +200,102 @@
             widthContainer.innerHTML = Array.from({length: 5}, (_, i) => `
                 <div>
                     <div class="input-label">测量 ${i+1}</div>
-                    <input type="number" id="width-${i}" placeholder="宽度 (mm)" step="0.01">
+                    <input type="number" id="width-${i}" placeholder="宽度 (cm)" step="0.01">
                 </div>
             `).join('');
         }
 
-        // 计算函数
-        function calculate() {
-            // 收集弹簧定标数据
-            const calibrationData = Array.from({length: 8}, (_, i) => ({
-                mass: parseFloat(document.getElementById(`mass-${i}`).value),
-                x1: parseFloat(document.getElementById(`x1-${i}`).value),
-                x2: parseFloat(document.getElementById(`x2-${i}`).value)
-            }));
+        // 核心计算逻辑（带单位转换）
+        function performCalculations(calibration, tension, width) {
+            // 单位转换常数
+            const g = 9.8;  // 重力加速度 m/s²
+            const cmToM = 0.01;
+            const gToKg = 0.001;
 
-            // 收集表面张力数据
-            const tensionData = Array.from({length: 5}, (_, i) => ({
-                s1: parseFloat(document.getElementById(`s1-${i}`).value),
-                s2: parseFloat(document.getElementById(`s2-${i}`).value)
-            }));
+            // 1. 计算弹簧倔强系数K
+            const validCalibration = calibration.filter(p => 
+                !isNaN(p.mass) && !isNaN(p.x1) && !isNaN(p.x2) && p.mass > 0
+            );
+            
+            let sumFx = 0, sumX2 = 0;
+            validCalibration.forEach(p => {
+                const F = p.mass * gToKg * g;  // g → kg → N
+                const x = ((p.x1 + p.x2) / 2) * cmToM;  // cm → m
+                sumFx += F * x;
+                sumX2 += x * x;
+            });
+            
+            const K = sumFx / (sumX2 || 1); // 防止除以零
+            const uK = validCalibration.length > 1 ? 
+                Math.sqrt((sumFx - K * sumX2) / (validCalibration.length - 1)) / Math.sqrt(sumX2) : 0;
 
-            // 收集宽度数据
-            const widthData = Array.from({length: 5}, (_, i) => 
-                parseFloat(document.getElementById(`width-${i}`).value)
+            // 2. 计算ΔS
+            const validTension = tension.filter(t => !isNaN(t.s1) && !isNaN(t.s2));
+            const deltaSValues = validTension.map(t => (t.s2 - t.s1));
+            const deltaSAvg = average(deltaSValues);
+            const uDeltaS = Math.sqrt(
+                Math.pow(standardDeviation(deltaSValues), 2) + 
+                Math.pow(0.05, 2)  // 仪器误差0.05cm
+            ) / Math.sqrt(validTension.length);
+
+            // 3. 计算门宽
+            const validWidth = width.filter(w => !isNaN(w));
+            const widthAvg = average(validWidth);
+            const uWidth = Math.sqrt(
+                Math.pow(standardDeviation(validWidth), 2) + 
+                Math.pow(0.02, 2)  // 仪器误差0.02cm
+            ) / Math.sqrt(validWidth.length);
+
+            // 4. 计算表面张力系数
+            const deltaS_m = deltaSAvg * cmToM;
+            const width_m = widthAvg * cmToM;
+            const alpha = (K * deltaS_m) / (2 * width_m);
+            
+            // 误差传递计算
+            const uAlpha = alpha * Math.sqrt(
+                Math.pow(uK/K, 2) + 
+                Math.pow(uDeltaS/deltaSAvg, 2) + 
+                Math.pow(uWidth/widthAvg, 2)
             );
 
-            // 执行计算逻辑（此处需要实现具体计算过程）
-            const results = performCalculations(calibrationData, tensionData, widthData);
-            
-            // 显示结果
-            displayResults(results);
-        }
+            // 与理论值比较（水：72mN/m = 0.072N/m）
+            const error = ((alpha - 0.072) / 0.072 * 100).toFixed(2);
 
-        function performCalculations(calibration, tension, width) {
-            // 实现具体计算逻辑
             return {
-                k: 0.752,
-                deltaS: 3.25,
-                width: 39.72,
-                alpha: 72.75,
-                error: 1.65
+                k: K.toFixed(3),
+                uK: uK.toFixed(4),
+                deltaS: deltaSAvg.toFixed(2),
+                uDeltaS: uDeltaS.toFixed(3),
+                width: widthAvg.toFixed(2),
+                uWidth: uWidth.toFixed(3),
+                alpha: alpha.toFixed(5),
+                uAlpha: uAlpha.toFixed(5),
+                error: error
             };
         }
 
+        // 辅助函数
+        function average(arr) {
+            return arr.reduce((a, b) => a + b, 0) / arr.length || 0;
+        }
+
+        function standardDeviation(arr) {
+            const avg = average(arr);
+            return Math.sqrt(arr.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / (arr.length - 1)) || 0;
+        }
+
+        // 结果显示
         function displayResults(results) {
             const content = `
                 <table class="result-table">
                     <tr><th>参数</th><th>值</th><th>不确定度</th></tr>
-                    <tr><td>弹簧倔强系数 K</td><td>${results.k} N/m</td><td>±0.01 N/m</td></tr>
-                    <tr><td>ΔS 平均值</td><td>${results.deltaS} mm</td><td>±0.05 mm</td></tr>
-                    <tr><td>门形框宽度 L</td><td>${results.width} mm</td><td>±0.02 mm</td></tr>
-                    <tr><td>表面张力系数 α</td><td>${results.alpha}×10⁻² N/m</td><td>±1.2×10⁻³ N/m</td></tr>
+                    <tr><td>弹簧倔强系数 K</td><td>${results.k} N/m</td><td>±${results.uK}</td></tr>
+                    <tr><td>ΔS 平均值</td><td>${results.deltaS} cm</td><td>±${results.uDeltaS}</td></tr>
+                    <tr><td>门形框宽度 L</td><td>${results.width} cm</td><td>±${results.uWidth}</td></tr>
+                    <tr><td>表面张力系数 α</td><td>${results.alpha} N/m</td><td>±${results.uAlpha}</td></tr>
                     <tr><td>与理论值误差</td><td colspan="2">${results.error}%</td></tr>
                 </table>
+                <p style="color:#666;margin-top:15px;">理论参考值：水的表面张力系数 0.072 N/m (20℃)</p>
             `;
             document.getElementById('result-content').innerHTML = content;
         }
