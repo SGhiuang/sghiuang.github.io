@@ -251,8 +251,9 @@
         function processCurrent() {
             const Rx = parseFloat(document.getElementById('currentRx').value);
             const RsActual = parseFloat(document.getElementById('currentRs').value);
-            const IsInputs = document.querySelectorAll('#currentMeter .data-section:nth-child(1) .data-row:nth-child(2) input');
-            const IxInputs = document.querySelectorAll('#currentMeter .data-section:nth-child(1) .data-row:nth-child(4) input');
+            // 修正选择器路径
+            const IsInputs = document.querySelectorAll('#currentMeter .data-section .data-row:nth-child(2) input');
+            const IxInputs = document.querySelectorAll('#currentMeter .data-section .data-row:nth-child(4) input');
 
             // 输入验证
             if (!validateInputs([Rx, RsActual], IsInputs, IxInputs)) return;
@@ -269,12 +270,13 @@
             showResult('currentResult', '电流表', RsTheor, RsActual, IsList, IxList, deltaIx, 'mA');
         }
 
-        // 电压表处理函数
+        // 修复后的电压表处理函数
         function processVoltage() {
             const Rx = parseFloat(document.getElementById('voltageRx').value);
             const RsActual = parseFloat(document.getElementById('voltageRs').value);
-            const UsInputs = document.querySelectorAll('#voltageMeter .data-section:nth-child(1) .data-row:nth-child(2) input');
-            const UxInputs = document.querySelectorAll('#voltageMeter .data-section:nth-child(1) .data-row:nth-child(4) input');
+            // 修正选择器路径
+            const UsInputs = document.querySelectorAll('#voltageMeter .data-section .data-row:nth-child(2) input');
+            const UxInputs = document.querySelectorAll('#voltageMeter .data-section .data-row:nth-child(4) input');
 
             // 输入验证
             if (!validateInputs([Rx, RsActual], UsInputs, UxInputs)) return;
@@ -347,7 +349,7 @@
                     </tr>
                     <tr>
                         <th>差值 (${unit})</th>
-                        ${deltas.map(d => `<td class="${d < 0 ? 'negative' : ''}">${d.toFixed(2)}</td>`).join('')}
+                        ${deltas.map(d => `<td style="${d < 0 ? 'color: red;' : ''}">${d.toFixed(2)}</td>`).join('')}
                     </tr>
                 </table>
             `;
