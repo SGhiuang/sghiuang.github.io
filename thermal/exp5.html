@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>实验五：固体线胀系数测定</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --text-color: #2c3e50;
+            --light-bg: #f8f9fa;
+            --border-color: #e0e0e0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background-color: #f5f7f9;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .home-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            padding: 8px 16px;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        .home-btn:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .metal-section {
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .input-group {
+            margin: 15px 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        input {
+            width: 90%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.3s ease;
+        }
+        input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin: 10px 0;
+        }
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-table th {
+            background: var(--primary-color);
+            color: white;
+            padding: 14px 20px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .result-table td {
+            padding: 12px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.95rem;
+            color: var(--text-color);
+        }
+
+        .watermark {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.1;
+            background-image: url("data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><text x='50%' y='50%' transform='rotate(-45, 100 100)' font-size='25' fill='%23000000' dominant-baseline='middle' text-anchor='middle'>Powered By SGhiuang</text></svg>");
+            background-repeat: repeat;
+        }
+
+        .input-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .metal-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="home-btn">返回主页</a>
+        <h1 style="text-align: center;">固体线胀系数测定</h1>
+
+        <div class="card">
+            <h2>测量数据输入</h2>
+            <div id="inputSections">
+                <template id="metalTemplate">
+                    <div class="metal-section">
+                        <h3 class="metal-title"></h3>
+                        <div class="input-group">
+                            <div>
+                                <div class="input-label">长度测量1 (cm)</div>
+                                <input type="number" class="length">
+                            </div>
+                            <div>
+                                <div class="input-label">长度测量2 (cm)</div>
+                                <input type="number" class="length">
+                            </div>
+                            <div>
+                                <div class="input-label">长度测量3 (cm)</div>
+                                <input type="number" class="length">
+                            </div>
+                        </div>
+                        
+                        <h4>温度读数（mm）</h4>
+                        <div class="input-group temp-inputs"></div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <button onclick="calculateAll()">开始计算</button>
+
+        <div class="card" id="resultCard" style="display: none;">
+            <h2>计算结果</h2>
+            <div id="results"></div>
+        </div>
+
+        <button onclick="exportReport()" id="exportBtn" style="display: none;">导出实验报告</button>
+    </div>
+    <div class="watermark"></div>
+
+    <script>
+        const metals = ["铁", "铜", "铝"];
+        const temps = [35,40,45,50,55,60,65,70];
+        
+        // 初始化输入界面
+        function initInputs() {
+            const template = document.getElementById('metalTemplate');
+            const container = document.getElementById('inputSections');
+
+            metals.forEach(metal => {
+                const clone = template.content.cloneNode(true);
+                const section = clone.querySelector('.metal-section');
+                section.querySelector('h3').textContent = `${metal}杆测量数据`;
+                
+                // 温度输入
+                const tempContainer = section.querySelector('.temp-inputs');
+                temps.forEach(temp => {
+                    const div = document.createElement('div');
+                    div.innerHTML = `
+                        <div class="input-label">温度${temp}℃读数</div>
+                        <input type="number" class="temp-input" data-temp="${temp}">
+                    `;
+                    tempContainer.appendChild(div);
+                });
+
+                container.appendChild(clone);
+            });
+        }
+
+        // 主计算函数
+        function calculateAll() {
+            const results = [];
+            
+            document.querySelectorAll('.metal-section').forEach((section, index) => {
+                // 获取长度数据
+                const lengths = Array.from(section.querySelectorAll('.length'))
+                    .map(input => parseFloat(input.value) * 10);  // 转毫米
+                if (lengths.some(isNaN)) return;
+                
+                // 获取温度读数
+                const readings = Array.from(section.querySelectorAll('.temp-input'))
+                    .map(input => parseFloat(input.value));
+                if (readings.some(isNaN)) return;
+
+                // 计算过程
+                const L0_avg = lengths.reduce((a,b) => a+b, 0) / 3;
+                const delta_L = [
+                    readings[4]-readings[0],
+                    readings[5]-readings[1],
+                    readings[6]-readings[2],
+                    readings[7]-readings[3]
+                ];
+                const sum_delta_L = delta_L.reduce((a,b) => a+b, 0);
+                const avg_delta = sum_delta_L / 16;
+                const alpha = (avg_delta / (L0_avg * 5)) * 1e6;
+
+                // 存储结果
+                results.push({
+                    name: metals[index],
+                    L0_avg,
+                    delta_L,
+                    sum_delta_L,
+                    avg_delta,
+                    alpha
+                });
+            });
+
+            // 显示结果
+            displayResults(results);
+        }
+
+        // 结果展示
+        function displayResults(results) {
+            const container = document.getElementById('results');
+            container.innerHTML = '';
+            
+            results.forEach(res => {
+                const table = document.createElement('table');
+                table.className = 'result-table';
+                table.innerHTML = `
+                    <tr><th colspan="2">${res.name}杆计算结果</th></tr>
+                    <tr><td>有效长度平均值 L0</td><td>${res.L0_avg.toFixed(3)} mm</td></tr>
+                    ${res.delta_L.map((dl,i) => `
+                        <tr><td>ΔL${i+1}</td><td>${dl.toFixed(4)} mm</td></tr>
+                    `).join('')}
+                    <tr><td>总伸长量 ΣΔL</td><td>${res.sum_delta_L.toFixed(4)} mm</td></tr>
+                    <tr><td>平均每5℃伸长量</td><td>${res.avg_delta.toFixed(4)} mm</td></tr>
+                    <tr><td>线胀系数 α</td><td>${res.alpha.toFixed(2)} ×10⁻⁶/℃</td></tr>
+                `;
+                container.appendChild(table);
+            });
+
+            document.getElementById('resultCard').style.display = 'block';
+            document.getElementById('exportBtn').style.display = 'block';
+        }
+
+        // 导出功能
+        async function exportReport() {
+            const btn = document.getElementById('exportBtn');
+            try {
+                btn.disabled = true;
+                btn.textContent = '正在生成...';
+                
+                // 强制显示结果区域
+                document.getElementById('resultCard').style.display = 'block';
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                // 配置截图参数
+                const canvas = await html2canvas(document.querySelector('.container'), {
+                    scale: 2,
+                    useCORS: true,
+                    logging: true,
+                    allowTaint: true,
+                    onclone: (clonedDoc) => {
+                        // 确保克隆的文档中结果可见
+                        clonedDoc.getElementById('resultCard').style.display = 'block';
+                    }
+                });
+
+                // 创建临时canvas处理水印
+                const tempCanvas = document.createElement('canvas');
+                const ctx = tempCanvas.getContext('2d');
+                tempCanvas.width = canvas.width;
+                tempCanvas.height = canvas.height;
+
+                // 先绘制原始内容
+                ctx.drawImage(canvas, 0, 0);
+                
+                // 添加水印（降低不透明度）
+                ctx.save();
+                ctx.globalAlpha = 0.15;
+                ctx.font = '25px Microsoft YaHei';
+                ctx.fillStyle = '#000000';
+                ctx.translate(tempCanvas.width / 2, tempCanvas.height / 2);
+                ctx.rotate(-45 * Math.PI / 180);
+
+                for (let x = -tempCanvas.width; x < tempCanvas.width*2; x += 280) {
+                    for (let y = -tempCanvas.height; y < tempCanvas.height*2; y += 180) {
+                        ctx.fillText('Powered By SGhiuang', x, y);
+                    }
+                }
+                ctx.restore();
+
+                // 生成下载链接
+                const link = document.createElement('a');
+                link.download = `线胀系数报告_${new Date().toISOString().slice(0,10)}.png`;
+                link.href = tempCanvas.toDataURL();
+                link.click();
+
+            } catch (error) {
+                alert('导出失败: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '导出实验报告';
+            }
+        }
+
+        // 初始化页面
+        window.onload = initInputs;
+    </script>
+</body>
+</html>
