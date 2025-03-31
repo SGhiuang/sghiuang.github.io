@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>实验六：电表改装与校准</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --text-color: #2c3e50;
+            --light-bg: #f8f9fa;
+            --border-color: #e0e0e0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f7f9;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .home-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            padding: 8px 16px;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .home-btn:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        input {
+            width: 90%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 0;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-table th {
+            background: var(--primary-color);
+            color: white;
+            padding: 14px 20px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .result-table td {
+            padding: 12px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.95rem;
+            color: var(--text-color);
+        }
+
+        .watermark {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.05;
+            background-image: url("data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><text x='50%' y='50%' transform='rotate(-45, 100 100)' font-size='25' fill='%23000000' dominant-baseline='middle' text-anchor='middle'>Powered By SGhiuang</text></svg>");
+            background-repeat: repeat;
+        }
+
+        .data-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: var(--light-bg);
+            border-radius: 8px;
+        }
+
+        .data-row {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .data-header {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .data-row {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="home-btn">返回主页</a>
+        <h1 style="text-align: center;">电表改装与校准实验</h1>
+
+        <!-- 电流表改装模块 -->
+        <div class="card" id="currentMeter">
+            <h2>电流表改装（5mA量程）</h2>
+            
+            <div class="input-group">
+                <div>
+                    <div class="input-label">表头内阻 Rx (Ω)</div>
+                    <input type="number" id="currentRx" step="0.1">
+                </div>
+                <div>
+                    <div class="input-label">分流电阻 R_S (Ω)</div>
+                    <input type="number" id="currentRs" step="0.1">
+                </div>
+            </div>
+
+            <div class="data-section">
+                <div class="data-header">标准表测量值 Is (mA)</div>
+                <div class="data-row">
+                    <input type="number" step="0.01" placeholder="1">
+                    <input type="number" step="0.01" placeholder="2">
+                    <input type="number" step="0.01" placeholder="3">
+                    <input type="number" step="0.01" placeholder="4">
+                    <input type="number" step="0.01" placeholder="5">
+                    <input type="number" step="0.01" placeholder="6">
+                </div>
+
+                <div class="data-header">改装表测量值 Ix (mA)</div>
+                <div class="data-row">
+                    <input type="number" step="0.01" placeholder="1">
+                    <input type="number" step="0.01" placeholder="2">
+                    <input type="number" step="0.01" placeholder="3">
+                    <input type="number" step="0.01" placeholder="4">
+                    <input type="number" step="0.01" placeholder="5">
+                    <input type="number" step="0.01" placeholder="6">
+                </div>
+            </div>
+            <button onclick="processCurrent()">计算电流表数据</button>
+            <div id="currentResult"></div>
+        </div>
+
+        <!-- 电压表改装模块 -->
+        <div class="card" id="voltageMeter">
+            <h2>电压表改装（1V量程）</h2>
+            
+            <div class="input-group">
+                <div>
+                    <div class="input-label">表头内阻 Rx (Ω)</div>
+                    <input type="number" id="voltageRx" step="0.1">
+                </div>
+                <div>
+                    <div class="input-label">分压电阻 R_S (Ω)</div>
+                    <input type="number" id="voltageRs" step="0.1">
+                </div>
+            </div>
+
+            <div class="data-section">
+                <div class="data-header">标准表测量值 Us (V)</div>
+                <div class="data-row">
+                    <input type="number" step="0.01" placeholder="1">
+                    <input type="number" step="0.01" placeholder="2">
+                    <input type="number" step="0.01" placeholder="3">
+                    <input type="number" step="0.01" placeholder="4">
+                    <input type="number" step="0.01" placeholder="5">
+                    <input type="number" step="0.01" placeholder="6">
+                </div>
+
+                <div class="data-header">改装表测量值 Ux (V)</div>
+                <div class="data-row">
+                    <input type="number" step="0.01" placeholder="1">
+                    <input type="number" step="0.01" placeholder="2">
+                    <input type="number" step="0.01" placeholder="3">
+                    <input type="number" step="0.01" placeholder="4">
+                    <input type="number" step="0.01" placeholder="5">
+                    <input type="number" step="0.01" placeholder="6">
+                </div>
+            </div>
+            <button onclick="processVoltage()">计算电压表数据</button>
+            <div id="voltageResult"></div>
+        </div>
+
+        <button onclick="exportReport()" id="exportBtn">导出实验报告</button>
+    </div>
+    <div class="watermark"></div>
+
+    <script>
+        // 电流表处理函数
+        function processCurrent() {
+            const Rx = parseFloat(document.getElementById('currentRx').value);
+            const RsActual = parseFloat(document.getElementById('currentRs').value);
+            const IsInputs = document.querySelectorAll('#currentMeter .data-section:nth-child(1) .data-row:nth-child(2) input');
+            const IxInputs = document.querySelectorAll('#currentMeter .data-section:nth-child(1) .data-row:nth-child(4) input');
+
+            // 输入验证
+            if (!validateInputs([Rx, RsActual], IsInputs, IxInputs)) return;
+
+            // 理论值计算
+            const RsTheor = calculateRsCurrent(Rx);
+            
+            // 数据获取
+            const IsList = getValues(IsInputs);
+            const IxList = getValues(IxInputs);
+            const deltaIx = calculateDeltas(IsList, IxList);
+
+            // 显示结果
+            showResult('currentResult', '电流表', RsTheor, RsActual, IsList, IxList, deltaIx, 'mA');
+        }
+
+        // 电压表处理函数
+        function processVoltage() {
+            const Rx = parseFloat(document.getElementById('voltageRx').value);
+            const RsActual = parseFloat(document.getElementById('voltageRs').value);
+            const UsInputs = document.querySelectorAll('#voltageMeter .data-section:nth-child(1) .data-row:nth-child(2) input');
+            const UxInputs = document.querySelectorAll('#voltageMeter .data-section:nth-child(1) .data-row:nth-child(4) input');
+
+            // 输入验证
+            if (!validateInputs([Rx, RsActual], UsInputs, UxInputs)) return;
+
+            // 理论值计算
+            const RsTheor = calculateRsVoltage(Rx);
+            
+            // 数据获取
+            const UsList = getValues(UsInputs);
+            const UxList = getValues(UxInputs);
+            const deltaUx = calculateDeltas(UsList, UxList);
+
+            // 显示结果
+            showResult('voltageResult', '电压表', RsTheor, RsActual, UsList, UxList, deltaUx, 'V');
+        }
+
+        // 通用验证函数
+        function validateInputs(params, ...inputGroups) {
+            if (params.some(isNaN)) {
+                alert('请填写所有基本参数');
+                return false;
+            }
+            
+            for (const group of inputGroups) {
+                const values = Array.from(group).map(input => parseFloat(input.value));
+                if (values.some(isNaN)) {
+                    alert('请填写所有测量数据');
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // 理论计算函数
+        function calculateRsCurrent(Rx) {
+            const Ix = 100e-6; // 100μA
+            const Is = 5e-3;   // 5mA
+            return Rx / (Is/Ix - 1);
+        }
+
+        function calculateRsVoltage(Rx) {
+            const Ix = 100e-6; // 100μA
+            const Us = 1;      // 1V
+            return Us/Ix - Rx;
+        }
+
+        // 数据获取函数
+        function getValues(inputs) {
+            return Array.from(inputs).map(input => parseFloat(input.value));
+        }
+
+        // 差值计算函数
+        function calculateDeltas(baseValues, measuredValues) {
+            return baseValues.map((v, i) => measuredValues[i] - v);
+        }
+
+        // 结果显示函数
+        function showResult(containerId, meterType, RsTheor, RsActual, baseValues, measuredValues, deltas, unit) {
+            const resultHTML = `
+                <h3>${meterType}改装结果</h3>
+                <p>理论计算值 R_S = ${RsTheor.toFixed(2)} Ω | 实际值 R_S = ${RsActual.toFixed(2)} Ω</p>
+                <table class="result-table">
+                    <tr>
+                        <th>标准值 (${unit})</th>
+                        ${baseValues.map(v => `<td>${v.toFixed(2)}</td>`).join('')}
+                    </tr>
+                    <tr>
+                        <th>测量值 (${unit})</th>
+                        ${measuredValues.map(v => `<td>${v.toFixed(2)}</td>`).join('')}
+                    </tr>
+                    <tr>
+                        <th>差值 (${unit})</th>
+                        ${deltas.map(d => `<td class="${d < 0 ? 'negative' : ''}">${d.toFixed(2)}</td>`).join('')}
+                    </tr>
+                </table>
+            `;
+            document.getElementById(containerId).innerHTML = resultHTML;
+        }
+
+        // 导出报告功能
+        async function exportReport() {
+            const btn = document.getElementById('exportBtn');
+            try {
+                btn.disabled = true;
+                btn.textContent = '正在生成...';
+                
+                // 强制显示所有结果
+                document.querySelectorAll('.result-table').forEach(t => t.style.display = 'table');
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                const canvas = await html2canvas(document.querySelector('.container'), {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: true
+                });
+
+                // 添加水印
+                const ctx = canvas.getContext('2d');
+                ctx.save();
+                ctx.globalAlpha = 0.15;
+                ctx.font = '25px Microsoft YaHei';
+                ctx.fillStyle = '#000000';
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate(-45 * Math.PI / 180);
+                for (let x = -canvas.width; x < canvas.width*2; x += 280) {
+                    for (let y = -canvas.height; y < canvas.height*2; y += 180) {
+                        ctx.fillText('Powered By SGhiuang', x, y);
+                    }
+                }
+                ctx.restore();
+
+                const link = document.createElement('a');
+                link.download = `电表改装报告_${new Date().toISOString().slice(0,10)}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+
+            } catch (error) {
+                alert('导出失败: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '导出实验报告';
+                document.querySelectorAll('.result-table').forEach(t => t.style.display = '');
+            }
+        }
+    </script>
+</body>
+</html>
