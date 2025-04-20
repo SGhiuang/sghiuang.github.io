@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实验八：电容测量与分析</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --error-color: #e74c3c;
+            --ok-color: #2ecc71;
+            --text-color: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        input {
+            width: 85%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: opacity 0.3s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .result-table td {
+            background-color: #f8f9fa;
+        }
+
+        .error {
+            color: var(--error-color);
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .deviation {
+            font-weight: bold;
+        }
+
+        .good {
+            color: var(--ok-color);
+        }
+
+        .warning {
+            color: orange;
+        }
+
+        .bad {
+            color: var(--error-color);
+        }
+
+        #chart-container {
+            margin-top: 20px;
+            height: 400px;
+        }
+        .standard-value {
+            background-color: #f3f4f6;
+            font-weight: bold;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h2>电容测量数据输入 (10组)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>组别</th>
+                        <th>电压 (V)</th>
+                        <th>Q1 (μC)</th>
+                        <th>Q2 (μC)</th>
+                        <th>Q3 (μC)</th>
+                        <th>标准值 (μF)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- 生成10组输入行，标准值自动填充 -->
+                    <script>
+                        document.write(Array(10).fill().map((_,i) => {
+                            const stdValue = (0.1 * (i + 1)).toFixed(1);
+                            return `<tr>
+                                <td>第${i+1}组</td>
+                                <td><input type="number" id="u${i+1}" step="0.1"></td>
+                                <td><input type="number" id="q${i+1}_1" step="0.1"></td>
+                                <td><input type="number" id="q${i+1}_2" step="0.1"></td>
+                                <td><input type="number" id="q${i+1}_3" step="0.1"></td>
+                                <td class="standard-value">${stdValue}</td>
+                            </tr>`;
+                        }).join(''));
+                    </script>
+                </tbody>
+            </table>
+            <div id="error-message" class="error"></div>
+            <button onclick="calculate()">开始计算</button>
+        </div>
+
+        <div class="card" id="result-card" style="display: none;">
+            <h2>测量结果分析</h2>
+            <div id="warning-message" class="warning"></div>
+            <table class="result-table">
+                <thead>
+                    <tr>
+                        <th>组别</th>
+                        <th>计算电容 (μF)</th>
+                        <th>标准值 (μF)</th>
+                        <th>偏差百分比</th>
+                        <th>评价</th>
+                    </tr>
+                </thead>
+                <tbody id="result-body"></tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2">有效数据组数：<span id="valid-count">0</span></td>
+                        <td colspan="3">无效数据组数：<span id="invalid-count">0</span></td>
+                    </tr>
+                </tfoot>
+            </table>
+            
+            <div id="chart-container">
+                <canvas id="resultChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let myChart = null;
+        const STANDARD_VALUES = Array.from({length: 10}, (_, i) => 0.1 * (i + 1));
+
+        function calculate() {
+            const validData = [];
+            const warnings = [];
+            
+            for(let i = 0; i < 10; i++) {
+                const groupNumber = i + 1;
+                try {
+                    // 调试输出：显示当前处理的组号
+                    console.log(`正在处理第${groupNumber}组数据...`);
+
+                    // 获取输入元素的新方法（更可靠的DOM查询）
+                    const uInput = document.querySelector(`#u${groupNumber}`);
+                    const q1Input = document.querySelector(`#q${groupNumber}_1`);
+                    const q2Input = document.querySelector(`#q${groupNumber}_2`);
+                    const q3Input = document.querySelector(`#q${groupNumber}_3`);
+
+                    // 调试输出：显示原始输入值
+                    console.log(`原始输入值: 
+                        U: ${uInput.value}
+                        Q1: ${q1Input.value}
+                        Q2: ${q2Input.value}
+                        Q3: ${q3Input.value}`);
+
+                    // 增强的数值转换（处理逗号分隔符）
+                    const parseNumber = (value) => {
+                        // 替换中文逗号，处理千分位分隔符
+                        return parseFloat(value.replace(/,/g, '').replace(/，/g, '.'));
+                    };
+
+                    const u = parseNumber(uInput.value);
+                    const qs = [
+                        parseNumber(q1Input.value),
+                        parseNumber(q2Input.value),
+                        parseNumber(q3Input.value)
+                    ];
+                    const std = STANDARD_VALUES[i];
+
+                    // 调试输出：显示转换后的数值
+                    console.log(`转换后数值: 
+                        U: ${u}
+                        Q1: ${qs[0]}
+                        Q2: ${qs[1]}
+                        Q3: ${qs[2]}
+                        STD: ${std}`);
+
+                    // 增强的数据验证
+                    const validation = {
+                        hasNegative: false,
+                        isVoltageValid: true,
+                        isChargeValid: true
+                    };
+
+                    // 检查负值（电压必须为正）
+                    if(u <= 0) {
+                        validation.hasNegative = true;
+                        validation.isVoltageValid = false;
+                    }
+                    if(qs.some(q => q < 0)) {
+                        validation.hasNegative = true;
+                        validation.isChargeValid = false;
+                    }
+
+                    // 错误处理
+                    if(validation.hasNegative) {
+                        warnings.push(`第${groupNumber}组：${
+                            !validation.isVoltageValid ? '电压必须为正数' : ''
+                        }${
+                            !validation.isChargeValid ? '电荷量不能为负数' : ''
+                        }`);
+                        continue;
+                    }
+
+                    // 检查数值有效性（允许0值）
+                    if([u, ...qs].some(v => isNaN(v))) {
+                        warnings.push(`第${groupNumber}组：存在无效数值`);
+                        continue;
+                    }
+
+                    // 调试输出：验证通过
+                    console.log(`第${groupNumber}组验证通过`);
+
+                    // 计算平均电荷量
+                    const avgQ = qs.reduce((sum, q) => sum + q, 0) / qs.length;
+                    
+                    // 计算电容值 (C = Q/U)
+                    const calc = (avgQ / u).toFixed(2);
+                    
+                    // 计算偏差百分比
+                    const deviation = (((calc - std) / std) * 100).toFixed(1);
+                    
+                    validData.push({
+                        group: groupNumber,
+                        calc: calc,
+                        std: std,
+                        deviation: deviation
+                    });
+
+                } catch (error) {
+                    console.error(`第${groupNumber}组处理异常:`, error);
+                    warnings.push(`第${groupNumber}组数据格式异常`);
+                }
+            }
+        }
+
+            // 调试输出：显示最终有效数据量
+            console.log('有效数据组数:', validData.length);
+            console.log('警告信息:', warnings);
+
+            if(validData.length === 0) {
+                // 显示详细错误提示
+                document.getElementById('error-message').innerHTML = `
+                    数据验证失败原因：<br>
+                    1. 请检查是否所有必填字段都已填写<br>
+                    2. 确认数值格式正确（示例：12.34）<br>
+                    3. 电压必须为正值<br>
+                    4. 电荷量不能为负数
+                `;
+                return;
+            }
+            
+            // 显示计算结果
+            showResults(validData, warnings);
+            document.getElementById('result-card').style.display = 'block';
+
+        function showResults(data, warnings) {
+            const tbody = document.getElementById('result-body');
+            
+            // 清空先前结果
+            tbody.innerHTML = '';
+            
+            // 填充新结果
+            data.forEach(item => {
+                const rating = getRating(item.deviation);
+                tbody.innerHTML += `<tr>
+                    <td>第${item.group}组</td>
+                    <td>${item.calc}</td>
+                    <td>${item.std.toFixed(1)}</td>
+                    <td class="deviation ${getDeviationClass(item.deviation)}">
+                        ${item.deviation}%
+                    </td>
+                    <td>${rating}</td>
+                </tr>`;
+            });
+
+            // 更新统计信息
+            document.getElementById('valid-count').textContent = data.length;
+            document.getElementById('invalid-count').textContent = 10 - data.length;
+            
+            // 显示警告信息
+            const warningHTML = warnings.map(w => 
+                `<div class="warning-item">⚠️ ${w}</div>`
+            ).join('');
+            document.getElementById('warning-message').innerHTML = warningHTML;
+
+            // 更新图表
+            updateChart(data);
+        }
+
+        function getRating(deviation) {
+            const absDev = Math.abs(deviation);
+            let rating = '';
+            if(absDev <= 2) {
+                rating = '<span class="good">优秀</span>';
+            } else if(absDev <= 5) {
+                rating = '<span class="warning">良好</span>';
+            } else {
+                rating = '<span class="bad">需复查</span>';
+            }
+            return rating;
+        }
+
+        function getDeviationClass(deviation) {
+            const absDev = Math.abs(deviation);
+            if(absDev <= 2) return 'good';
+            if(absDev <= 5) return 'warning';
+            return 'bad';
+        }
+
+        function updateChart(data) {
+            const ctx = document.getElementById('resultChart').getContext('2d');
+            if(myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    labels: data.map(d => `第${d.group}组`),
+                    datasets: [{
+                        label: '实测电容值',
+                        data: data.map(d => ({
+                            x: d.std,
+                            y: d.calc
+                        })),
+                        backgroundColor: 'rgba(52, 152, 219, 0.8)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }, {
+                        label: '理想曲线',
+                        data: STANDARD_VALUES.map(v => ({x: v, y: v})),
+                        type: 'line',
+                        borderColor: '#2ecc71',
+                        borderWidth: 2,
+                        fill: false,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: { display: true, text: '标准值 (μF)' },
+                            min: 0,
+                            max: 1.1
+                        },
+                        y: {
+                            title: { display: true, text: '测量值 (μF)' },
+                            min: 0,
+                            max: Math.max(...data.map(d => d.calc)) * 1.1
+                        }
+                    },
+                    plugins: {
+                        annotation: {
+                            annotations: {
+                                idealLine: {
+                                    type: 'line',
+                                    xMin: 0,
+                                    xMax: 1,
+                                    yMin: 0,
+                                    yMax: 1,
+                                    borderColor: '#e74c3c',
+                                    borderWidth: 1,
+                                    borderDash: [6, 6]
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

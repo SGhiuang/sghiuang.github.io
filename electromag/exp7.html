@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>实验七：电子束的电偏转与电聚焦</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --hover-color: #2980b9;
+            --error-color: #e74c3c;
+            --text-color: #2c3e50;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background-color: #f5f7f9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px 24px;
+            margin: 20px 0;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background-color: var(--hover-color);
+        }
+
+        .home-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        button.loading::after {
+            content: "";
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            top: 50%;
+            left: 50%;
+            margin: -12px 0 0 -12px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        h1 {
+            margin-top: 50px;
+            text-align: center;
+            padding: 0 60px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .method-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin: 15px 0;
+        }
+
+        input {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input.error-shake {
+            animation: shake 0.4s;
+            border-color: var(--error-color);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .result-value {
+            font-size: 1.1rem;
+            margin: 10px 0;
+            color: var(--text-color);
+        }
+
+        .chart-container {
+            margin-top: 20px;
+            height: 300px;
+        }
+
+        .error {
+            color: var(--error-color);
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .method-section {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                padding: 0 20px;
+                font-size: 1.5rem;
+            }
+        }
+
+        .watermark {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.1;
+            background-image: url("data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><text x='50%' y='50%' transform='rotate(-45, 100 100)' font-size='25' fill='%23000000' dominant-baseline='middle' text-anchor='middle'>Powered by SGhiuang</text></svg>");
+            background-repeat: repeat;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="home-btn">返回主页</a>
+        <h1>实验七：电子束的电偏转与电聚焦</h1>
+        <p style="text-align: center; margin-bottom: 20px;">说明：D值固定为 [-4, -3, -2, -1, 0, 1, 2, 3, 4]</p>
+
+        <!-- X轴电偏转 -->
+        <div class="card">
+            <h2>X轴电偏转数据输入</h2>
+            
+            <div class="input-group">
+                <label for="x-v2-600">V2 = 600V 时的 Vd 电压值（9个，空格分隔）:</label>
+                <input type="text" id="x-v2-600" placeholder="例如: -10 -7.5 -5 -2.5 0 2.5 5 7.5 10">
+                <div id="x-v2-600-error" class="error"></div>
+            </div>
+            
+            <div class="input-group">
+                <label for="x-v2-700">V2 = 700V 时的 Vd 电压值（9个，空格分隔）:</label>
+                <input type="text" id="x-v2-700" placeholder="例如: -10 -7.5 -5 -2.5 0 2.5 5 7.5 10">
+                <div id="x-v2-700-error" class="error"></div>
+            </div>
+            
+            <button onclick="calculateDeflection('x')">计算X轴灵敏度</button>
+            
+            <div id="x-results" style="display: none;">
+                <h3>X轴电偏转灵敏度计算结果:</h3>
+                <table id="x-results-table">
+                    <thead>
+                        <tr>
+                            <th>V2 (V)</th>
+                            <th>Vd</th>
+                            <th>D</th>
+                            <th>灵敏度</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Results will be inserted here -->
+                    </tbody>
+                </table>
+                
+                <div class="chart-container">
+                    <canvas id="x-chart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Y轴电偏转 -->
+        <div class="card">
+            <h2>Y轴电偏转数据输入</h2>
+            
+            <div class="input-group">
+                <label for="y-v2-600">V2 = 600V 时的 Vd 电压值（9个，空格分隔）:</label>
+                <input type="text" id="y-v2-600" placeholder="例如: -10 -7.5 -5 -2.5 0 2.5 5 7.5 10">
+                <div id="y-v2-600-error" class="error"></div>
+            </div>
+            
+            <div class="input-group">
+                <label for="y-v2-700">V2 = 700V 时的 Vd 电压值（9个，空格分隔）:</label>
+                <input type="text" id="y-v2-700" placeholder="例如: -10 -7.5 -5 -2.5 0 2.5 5 7.5 10">
+                <div id="y-v2-700-error" class="error"></div>
+            </div>
+            
+            <button onclick="calculateDeflection('y')">计算Y轴灵敏度</button>
+            
+            <div id="y-results" style="display: none;">
+                <h3>Y轴电偏转灵敏度计算结果:</h3>
+                <table id="y-results-table">
+                    <thead>
+                        <tr>
+                            <th>V2 (V)</th>
+                            <th>Vd</th>
+                            <th>D</th>
+                            <th>灵敏度</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Results will be inserted here -->
+                    </tbody>
+                </table>
+                
+                <div class="chart-container">
+                    <canvas id="y-chart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 电聚焦 -->
+        <div class="card">
+            <h2>电聚焦数据输入</h2>
+            
+            <div class="input-group">
+                <label for="v1-600">V2 = 600V 时的 V1 值:</label>
+                <input type="number" id="v1-600" placeholder="例如: 150" step="0.1">
+                <div id="v1-600-error" class="error"></div>
+            </div>
+            
+            <div class="input-group">
+                <label for="v1-700">V2 = 700V 时的 V1 值:</label>
+                <input type="number" id="v1-700" placeholder="例如: 175" step="0.1">
+                <div id="v1-700-error" class="error"></div>
+            </div>
+            
+            <div class="input-group">
+                <label for="v1-800">V2 = 800V 时的 V1 值:</label>
+                <input type="number" id="v1-800" placeholder="例如: 200" step="0.1">
+                <div id="v1-800-error" class="error"></div>
+            </div>
+            
+            <div class="input-group">
+                <label for="v1-900">V2 = 900V 时的 V1 值:</label>
+                <input type="number" id="v1-900" placeholder="例如: 225" step="0.1">
+                <div id="v1-900-error" class="error"></div>
+            </div>
+            
+            <div class="input-group">
+                <label for="v1-1000">V2 = 1000V 时的 V1 值:</label>
+                <input type="number" id="v1-1000" placeholder="例如: 250" step="0.1">
+                <div id="v1-1000-error" class="error"></div>
+            </div>
+            
+            <button onclick="calculateFocus()">计算电聚焦结果</button>
+            
+            <div id="focus-results" style="display: none;">
+                <h3>电聚焦计算结果:</h3>
+                <table id="focus-results-table">
+                    <thead>
+                        <tr>
+                            <th>V2 (V)</th>
+                            <th>V1 (V)</th>
+                            <th>V2/V1</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Results will be inserted here -->
+                    </tbody>
+                </table>
+                
+                <div class="chart-container">
+                    <canvas id="focus-chart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <button id="exportBtn" style="display: none;" onclick="exportReport()">导出实验报告</button>
+    </div>
+    <div class="watermark"></div>
+
+    <script>
+        const D = [-4, -3, -2, -1, 0, 1, 2, 3, 4];
+        let xChart, yChart, focusChart;
+        
+        function parseFloatList(input, expectedLength, errorElement) {
+            const values = input.trim().split(/\s+/).map(Number);
+            
+            if (values.length !== expectedLength || values.some(isNaN)) {
+                errorElement.textContent = `需要输入${expectedLength}个有效的数值，请重新输入!`;
+                input.classList.add('error-shake');
+                setTimeout(() => input.classList.remove('error-shake'), 400);
+                return null;
+            }
+            
+            errorElement.textContent = "";
+            return values;
+        }
+        
+        function linearRegression(x, y) {
+            const n = x.length;
+            let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+            
+            for (let i = 0; i < n; i++) {
+                sumX += x[i];
+                sumY += y[i];
+                sumXY += x[i] * y[i];
+                sumX2 += x[i] * x[i];
+            }
+            
+            const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            return slope;
+        }
+        
+        function calculateDeflection(axis) {
+            const v2Values = [600, 700];
+            const results = {};
+            
+            for (const v2 of v2Values) {
+                const inputElement = document.getElementById(`${axis}-v2-${v2}`);
+                const errorElement = document.getElementById(`${axis}-v2-${v2}-error`);
+                
+                const Vd = parseFloatList(inputElement.value, 9, errorElement);
+                if (!Vd) return;
+                
+                const slope = linearRegression(Vd, D);
+                results[v2] = { Vd, slope };
+            }
+            
+            // Display results in table
+            const tableBody = document.getElementById(`${axis}-results-table`).querySelector('tbody');
+            tableBody.innerHTML = '';
+            
+            for (const v2 of v2Values) {
+                const { Vd, slope } = results[v2];
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${v2}</td>
+                    <td>${Vd.join(', ')}</td>
+                    <td>${D.join(', ')}</td>
+                    <td>${slope.toFixed(4)}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            }
+            
+            // Show results section
+            document.getElementById(`${axis}-results`).style.display = 'block';
+            
+            // Update chart
+            updateDeflectionChart(axis, results);
+            
+            // Show export button if not already shown
+            if (document.getElementById('exportBtn').style.display === 'none') {
+                document.getElementById('exportBtn').style.display = 'block';
+            }
+        }
+        
+        function updateDeflectionChart(axis, results) {
+            const ctx = document.getElementById(`${axis}-chart`).getContext('2d');
+            const v2Values = Object.keys(results).map(Number);
+            const datasets = [];
+            
+            for (const v2 of v2Values) {
+                const { Vd, slope } = results[v2];
+                datasets.push({
+                    label: `V2 = ${v2}V (斜率: ${slope.toFixed(4)})`,
+                    data: Vd.map((v, i) => ({x: v, y: D[i]})),
+                    borderColor: v2 === 600 ? 'rgb(75, 192, 192)' : 'rgb(255, 99, 132)',
+                    backgroundColor: v2 === 600 ? 'rgba(75, 192, 192, 0.2)' : 'rgba(255, 99, 132, 0.2)',
+                    borderWidth: 1,
+                    showLine: true,
+                    fill: false
+                });
+            }
+            
+            if (window[`${axis}Chart`]) {
+                window[`${axis}Chart`].destroy();
+            }
+            
+            window[`${axis}Chart`] = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Vd (V)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'D'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function calculateFocus() {
+            const v2Values = [600, 700, 800, 900, 1000];
+            const results = {};
+            
+            for (const v2 of v2Values) {
+                const inputElement = document.getElementById(`v1-${v2}`);
+                const errorElement = document.getElementById(`v1-${v2}-error`);
+                
+                const value = parseFloat(inputElement.value.trim());
+                if (isNaN(value) || value <= 0) {
+                    errorElement.textContent = "请输入有效的正数电压值";
+                    inputElement.classList.add('error-shake');
+                    setTimeout(() => inputElement.classList.remove('error-shake'), 400);
+                    return;
+                }
+                
+                errorElement.textContent = "";
+                results[v2] = value;
+            }
+            
+            // Display results in table
+            const tableBody = document.getElementById('focus-results-table').querySelector('tbody');
+            tableBody.innerHTML = '';
+            
+            for (const v2 of v2Values) {
+                const v1 = results[v2];
+                const ratio = v2 / v1;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${v2}</td>
+                    <td>${v1.toFixed(1)}</td>
+                    <td>${ratio.toFixed(2)}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            }
+            
+            // Show results section
+            document.getElementById('focus-results').style.display = 'block';
+            
+            // Update chart
+            updateFocusChart(results);
+            
+            // Show export button if not already shown
+            if (document.getElementById('exportBtn').style.display === 'none') {
+                document.getElementById('exportBtn').style.display = 'block';
+            }
+        }
+        
+        function updateFocusChart(results) {
+            const ctx = document.getElementById('focus-chart').getContext('2d');
+            const v2Values = Object.keys(results).map(Number);
+            const v1Values = v2Values.map(v2 => results[v2]);
+            const ratios = v2Values.map(v2 => v2 / results[v2]);
+            
+            if (focusChart) {
+                focusChart.destroy();
+            }
+            
+            focusChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: v2Values,
+                    datasets: [
+                        {
+                            label: 'V1 (V)',
+                            data: v1Values,
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'V2/V1',
+                            data: ratios,
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            borderWidth: 1,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'V2 (V)'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'V1 (V)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'V2/V1'
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        async function exportReport() {
+            const btn = document.getElementById('exportBtn');
+            try {
+                btn.classList.add('loading');
+                btn.disabled = true;
+                
+                // 1. 获取需要截图的容器
+                const element = document.querySelector('.container');
+                
+                // 2. 使用html2canvas截图
+                const canvas = await html2canvas(element, {
+                    useCORS: true,
+                    scale: 2,
+                    logging: false,
+                    scrollX: 0,
+                    scrollY: -window.scrollY
+                });
+
+                // 3. 添加动态水印
+                const ctx = canvas.getContext('2d');
+                ctx.save();
+                ctx.font = '25px Microsoft YaHei';
+                ctx.fillStyle = 'rgba(0,0,0,0.15)';
+                ctx.translate(canvas.width/2, canvas.height/2);
+                ctx.rotate(-45 * Math.PI / 180);
+                
+                // 平铺水印文字
+                for(let x = -canvas.width; x < canvas.width; x += 300) {
+                    for(let y = -canvas.height; y < canvas.height; y += 200) {
+                        ctx.fillText('Powered by SGhiuang', x, y);
+                    }
+                }
+                ctx.restore();
+
+                // 4. 创建下载链接
+                const link = document.createElement('a');
+                link.download = `实验七报告_${new Date().toLocaleString().replace(/[/:]/g,'-')}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+
+            } catch (error) {
+                alert('导出失败: ' + error.message);
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
